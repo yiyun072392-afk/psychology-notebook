@@ -21,15 +21,15 @@ configuration:
       code: "JetBrains Mono"
     colors:
       lightMode:
-        light: "#F2F6F6"
-        lightgray: "#E1E8E8"
-        gray: "#9DB0B0"
-        darkgray: "#3C4A4A"
-        dark: "#10181A"
-        secondary: "#0E8A78"
-        tertiary: "#C22A60"
-        highlight: rgba(140, 107, 255, 0.12)
-        textHighlight: "#FFD27688"
+        light: "#080B0F"
+        lightgray: "#141C25"
+        gray: "#3A4750"
+        darkgray: "#B9D6D2"
+        dark: "#E8F6F4"
+        secondary: "#2FE6CC"
+        tertiary: "#FF3D7A"
+        highlight: rgba(140, 107, 255, 0.15)
+        textHighlight: "#4DA8FF66"
       darkMode:
         light: "#080B0F"
         lightgray: "#141C25"
@@ -169,7 +169,7 @@ plugins:
       position: left
       priority: 10
   - source: github:quartz-community/darkmode
-    enabled: true
+    enabled: false
     layout:
       position: left
       priority: 30
@@ -215,7 +215,7 @@ plugins:
     options: {}
     order: 50
   - source: github:quartz-community/note-properties
-    enabled: true
+    enabled: false
     options:
       includeAll: false
       includedProperties:
