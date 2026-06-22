@@ -606,7 +606,7 @@ function renderCards() {
       </div>
       ${defSnippet}
       ${mnemo}
-      ${c.keywords ? `<div class="card-keywords"><strong>Keywords</strong>${esc(c.keywords.substring(0, 120))}${c.keywords.length > 120 ? '…' : ''}</div>` : ''}
+      ${c.keywords ? `<div class="card-keywords">${esc(c.keywords.substring(0, 120))}${c.keywords.length > 120 ? '…' : ''}</div>` : ''}
       ${tags ? `<div class="card-tags">${tags}</div>` : ''}
       ${footer}
     </div>`;
@@ -671,8 +671,6 @@ function openModal(id) {
 
   const meta = [];
   if (c.dsm && c.dsm !== 'N/A') meta.push(`<span>DSM-5: <strong style="color:#FF3D7A">${esc(c.dsm)}</strong></span>`);
-  if (c.source) meta.push(`<span>來源: <strong>${esc(c.source)}</strong></span>`);
-  if (c.page) meta.push(`<span>頁碼: <strong>${esc(c.page)}</strong></span>`);
   if (meta.length) html += `<div class="modal-meta">${meta.join('')}</div>`;
 
   document.getElementById('modal-body').innerHTML = html;
@@ -705,3 +703,4 @@ init();
 </script>
 </body>
 </html>
+                                                                                                                                                                                               
