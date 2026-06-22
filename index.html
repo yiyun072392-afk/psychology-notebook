@@ -188,9 +188,9 @@ function buildSidebar(cats){
 function filterCat(cat){
   currentCat=cat;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
   const btn=document.getElementById(cat==='all'?'cat-all':'cb-'+eid(cat));if(btn)btn.classList.add('active');
-  navigate('list');
+  if(currentPage==='list')renderList();else navigate('list');
 }
-function onSearch(){currentSearch=document.getElementById('searchInput').value.toLowerCase().trim();navigate('list');}
+function onSearch(){currentSearch=document.getElementById('searchInput').value.toLowerCase().trim();if(currentPage==='list')renderList();else navigate('list');}
 function getFiltered(){
   return articles.filter(a=>{
     const mc=currentCat==='all'||a.category===currentCat;
@@ -214,9 +214,4 @@ function cardHTML(a){
     (tags?'<div class="card-tags">'+tags+'</div>':'')+
     '<div class="card-arrow">閱讀全文 →</div></div>';
 }
-function fmtDate(s){if(!s)return'';const d=new Date(s);return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');}
-function eid(s){return s.replace(/\s+/g,'_');}
-init();
-</script>
-</body>
-</html>
+function fmtDate(s){if(!s)return'';const d=new Date(s);return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'
