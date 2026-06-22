@@ -180,8 +180,7 @@ function buildSidebar(cats){
   document.getElementById('count-all').textContent=articles.length;
   document.getElementById('cat-list').innerHTML=cats.map(cat=>{
     const c=COLORS[cat]||'#5A7A9A',n=articles.filter(a=>a.category===cat).length;
-    return '<button class="cat-btn" id="cb-'+eid(cat)+'" onclick="filterCat(\''+cat+'\')">'+
-      '<span class="cat-dot" style="background:'+c+'"></span>'+cat+'<span class="cat-count">'+n+'</span></button>';
+    return `<button class="cat-btn" id="cb-${eid(cat)}" onclick="filterCat('${cat}')"><span class="cat-dot" style="background:${c}"></span>${cat}<span class="cat-count">${n}</span></button>`;
   }).join('');
 }
 function filterCat(cat){

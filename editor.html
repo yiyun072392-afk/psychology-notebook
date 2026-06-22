@@ -305,10 +305,7 @@ function renderList() {
   }
   el.innerHTML = articles.map(a => {
     const active = a.id === currentId ? ' active' : '';
-    return '<div class="a-item'+active+'" id="item-'+a.id+'" onclick="selectArticle(''+a.id+'')">'+
-      '<div class="a-item-title">'+(a.title||'無標題')+'</div>'+
-      '<div class="a-item-meta">'+a.category+' · '+fmtDate(a.date)+'</div>'+
-      '</div>';
+    return `<div class="a-item${active}" id="item-${a.id}" onclick="selectArticle('${a.id}')"><div class="a-item-title">${a.title||'無標題'}</div><div class="a-item-meta">${a.category} · ${fmtDate(a.date)}</div></div>`;
   }).join('');
 }
 
