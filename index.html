@@ -198,7 +198,7 @@ function getFiltered(){
     return mc&&mq;
   });
 }
-function renderHome(){document.getElementById('home-cards').innerHTML=articles.slice(0,5).map(cardHTML).join('');}
+function renderHome(){const notes=articles.filter(a=>!a.concept).slice(0,5);document.getElementById('home-cards').innerHTML=notes.length?notes.map(cardHTML).join(''):'<div class="empty"><div class="empty-icon">✏️</div><h3>還沒有筆記</h3><p>到編輯器新增第一篇</p></div>';}
 function renderList(){
   const f=getFiltered();
   document.getElementById('result-count').textContent=f.length+' 篇';
@@ -212,6 +212,4 @@ function cardHTML(a){
     '<div class="card-meta"><span class="card-cat">'+a.category+'</span><span class="card-date">'+fmtDate(a.date)+'</span></div>'+
     '<h2>'+a.title+'</h2><p>'+(a.summary||'')+'</p>'+
     (tags?'<div class="card-tags">'+tags+'</div>':'')+
-    '<div class="card-arrow">閱讀全文 →</div></div>';
-}
-function fmtDate(s){if(!s)return'';const d=new Date(s);return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'
+    '<div class="card-arrow">閱讀全文 →</div></d
