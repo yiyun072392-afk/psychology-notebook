@@ -3,555 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>案頭 — PSI-NET 神經索引</title>
+<title>ψ-NOTE — 臨床心理學筆記</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg: #080B0F;
-    --surface: #0E141B;
-    --surface-2: #141C25;
-    --line: rgba(120,200,210,0.14);
-    --text: #D9E8E6;
-    --text-dim: #6A7C84;
-    --cyan: #2FE6CC;      /* 研究所考科 */
-    --magenta: #FF3D7A;   /* 國考科目 */
-    --amber: #FFB454;     /* 其他相關領域 */
-    --violet: #8C6BFF;    /* 結構節點 / root / hub */
-    --blue: #4DA8FF;      /* 社群／外部連結 */
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;height:100%;}
-  body{
-    background:
-      radial-gradient(ellipse at 20% 0%, rgba(140,107,255,0.08), transparent 55%),
-      radial-gradient(ellipse at 85% 90%, rgba(47,230,204,0.06), transparent 50%),
-      var(--bg);
-    color:var(--text);
-    font-family:'Noto Sans TC', sans-serif;
-    overflow:hidden;
-  }
-  body::before{
-    content:"";
-    position:fixed; inset:0;
-    background-image:
-      linear-gradient(rgba(120,200,210,0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(120,200,210,0.045) 1px, transparent 1px);
-    background-size:42px 42px;
-    pointer-events:none;
-    z-index:0;
-    mask-image: radial-gradient(ellipse at center, black 0%, transparent 75%);
-  }
-
-  .shell{
-    position:relative;
-    display:grid;
-    grid-template-columns: 240px 1fr;
-    grid-template-rows: 64px 1fr;
-    height:100vh;
-    z-index:1;
-  }
-  header{
-    grid-column:1 / 3;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 22px;
-    border-bottom:1px solid var(--line);
-    background:var(--surface);
-  }
-  .brand{display:flex; align-items:center; gap:12px;}
-  .brand .mark{
-    font-family:'Share Tech Mono', monospace;
-    font-size:11px; letter-spacing:2px;
-    color:var(--bg);
-    background:var(--cyan);
-    padding:3px 7px;
-    box-shadow:0 0 12px rgba(47,230,204,0.55);
-  }
-  .brand h1{
-    font-size:18px; font-weight:900; margin:0; letter-spacing:3px;
-    color:var(--text);
-    text-shadow:0 0 18px rgba(140,107,255,0.45);
-  }
-  .brand .sub{
-    font-family:'JetBrains Mono', monospace;
-    font-size:10px; color:var(--text-dim); letter-spacing:1.5px;
-  }
-  .searchwrap{display:flex; align-items:center; gap:8px;}
-  .searchwrap::before{content:"›"; color:var(--cyan); font-family:'Share Tech Mono',monospace; font-size:16px;}
-  .searchwrap input{
-    font-family:'JetBrains Mono', monospace;
-    font-size:12.5px;
-    padding:8px 12px;
-    width:230px;
-    border:1px solid var(--line);
-    background:var(--surface-2);
-    color:var(--cyan);
-    outline:none;
-  }
-  .searchwrap input::placeholder{color:var(--text-dim);}
-  .searchwrap input:focus{border-color:var(--cyan); box-shadow:0 0 10px rgba(47,230,204,0.3);}
-
-  nav.sidebar{
-    border-right:1px solid var(--line);
-    background:var(--surface);
-    overflow-y:auto;
-    padding:14px 0 30px;
-  }
-  .folder-group{margin-bottom:6px;}
-  .folder-tab{
-    font-family:'JetBrains Mono', sans-serif;
-    font-weight:700; font-size:11px; letter-spacing:1.5px;
-    padding:9px 16px 7px;
-    display:flex; align-items:center; gap:7px;
-  }
-  .folder-tab .dot{width:7px;height:7px;border-radius:50%;background:currentColor; box-shadow:0 0 6px currentColor;}
-  .tab-grad{color:var(--cyan);}
-  .tab-license{color:var(--magenta);}
-  .tab-related{color:var(--amber);}
-  .tab-social{color:var(--blue);}
-
-  .leaf-item{
-    display:block; width:100%; text-align:left;
-    background:none; border:none; border-bottom:1px solid rgba(120,200,210,0.06);
-    font-family:'Noto Sans TC', sans-serif;
-    font-size:13px; color:var(--text);
-    padding:8px 18px 8px 26px;
-    cursor:pointer; transition:background .15s, color .15s;
-  }
-  .leaf-item:hover{background:rgba(47,230,204,0.07); color:var(--cyan);}
-  .leaf-item.social-item:hover{color:var(--blue); background:rgba(77,168,255,0.08);}
-  .community-note{
-    font-family:'JetBrains Mono', monospace; font-size:11px; line-height:1.7;
-    color:var(--text-dim); padding:6px 18px 16px 26px;
-  }
-
-  main.stage{position:relative; overflow:hidden;}
-  svg#graph{width:100%; height:100%; display:block; cursor:grab;}
-  svg#graph:active{cursor:grabbing;}
-
-  @keyframes dashflow{ to{ stroke-dashoffset:-24; } }
-  .cross-link{ animation: dashflow 1.4s linear infinite; }
-
-  .legend{
-    position:absolute; left:18px; bottom:16px;
-    background:var(--surface); border:1px solid var(--line);
-    padding:11px 14px; font-family:'JetBrains Mono', monospace; font-size:10.5px;
-    line-height:1.95; color:var(--text); backdrop-filter:blur(4px);
-  }
-  .legend .row{display:flex; align-items:center; gap:8px;}
-  .legend .swatch{width:10px;height:10px;border-radius:50%; box-shadow:0 0 6px currentColor;}
-  .legend .swatch.diamond{border-radius:2px; transform:rotate(45deg);}
-  .legend .line-sample{width:22px; height:0; display:inline-block; border-top:1.5px solid var(--text-dim);}
-  .legend .line-sample.cross{border-top:1.5px dashed var(--magenta);}
-
-  .hint{
-    position:absolute; right:18px; bottom:16px;
-    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim);
-    max-width:210px; text-align:right; line-height:1.7;
-  }
-
-  aside.panel{
-    position:absolute; top:0; right:0; bottom:0; width:390px;
-    background:var(--surface);
-    border-left:1px solid var(--line);
-    box-shadow:-10px 0 30px rgba(0,0,0,0.5);
-    transform:translateX(100%); transition:transform .28s ease;
-    overflow-y:auto; z-index:5;
-  }
-  aside.panel::before{
-    content:""; position:absolute; inset:0; pointer-events:none;
-    background:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, transparent 1px, transparent 3px);
-  }
-  aside.panel.open{transform:translateX(0);}
-  .panel-inner{padding:22px 22px 40px; position:relative;}
-  .panel-close{
-    position:absolute; top:14px; right:16px;
-    background:none; border:1px solid var(--line); color:var(--text);
-    width:26px; height:26px; font-family:'JetBrains Mono', monospace; cursor:pointer;
-  }
-  .panel-close:hover{border-color:var(--cyan); color:var(--cyan);}
-  .panel-tag{
-    display:inline-block; font-family:'Share Tech Mono', monospace;
-    font-size:10.5px; letter-spacing:1.5px; padding:3px 8px;
-    color:var(--bg); margin-bottom:12px;
-  }
-  .panel-inner h2{font-size:20px; margin:0 0 4px; line-height:1.4; color:var(--text);}
-  .panel-id{
-    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim);
-    margin-bottom:16px; display:block;
-  }
-  .panel-section{margin-top:20px;}
-  .panel-section h3{
-    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:1.5px;
-    color:var(--text-dim); border-bottom:1px solid var(--line); padding-bottom:5px; margin-bottom:9px;
-  }
-  .panel-section p{font-size:13.5px; line-height:1.9; margin:0; color:var(--text);}
-  .panel-section ul{margin:0; padding-left:18px;}
-  .panel-section li{font-size:13px; line-height:1.8; color:var(--text);}
-  .external-btn{
-    display:inline-flex; align-items:center; gap:6px;
-    font-family:'JetBrains Mono', monospace; font-size:12px;
-    color:var(--bg); background:var(--blue); text-decoration:none;
-    padding:7px 12px; margin-top:6px; box-shadow:0 0 14px rgba(77,168,255,0.4);
-  }
-  .related-link{
-    display:flex; align-items:center; gap:7px;
-    font-family:'Noto Sans TC', sans-serif; font-size:13px; padding:7px 0;
-    cursor:pointer; border-bottom:1px solid rgba(120,200,210,0.08);
-    background:none; border-left:none; border-right:none; border-top:none;
-    width:100%; text-align:left; color:var(--text);
-  }
-  .related-link:hover{color:var(--cyan);}
-  .related-link .rel-note{font-size:11px; color:var(--text-dim); display:block; font-family:'JetBrains Mono',monospace;}
-  .related-link .dot{width:8px;height:8px;border-radius:50%; box-shadow:0 0 5px currentColor; flex:0 0 auto;}
-
-  @media (max-width:760px){
-    .shell{grid-template-columns: 0 1fr;}
-    nav.sidebar{display:none;}
-    aside.panel{width:100%;}
-    .searchwrap input{width:140px;}
-  }
+  :root{--bg:#080B0F;--surface:#0E141B;--surface2:#141C26;--border:#1E2D3D;--text:#C8D8E8;--muted:#5A7A9A;--cyan:#2FE6CC;--magenta:#FF3D7A;--amber:#FFB454;--blue:#4DA8FF;--font:'Noto Sans TC',sans-serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;line-height:1.7}
+  a{color:var(--cyan);text-decoration:none}
+  header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,11,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;gap:20px;padding:0 24px}
+  .brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+  .brand-mark{font-size:24px;font-weight:900;color:var(--cyan);font-family:var(--mono);text-shadow:0 0 20px var(--cyan)}
+  .brand-text{font-size:14px;font-weight:700;color:var(--text)}
+  .brand-text span{display:block;font-size:10px;color:var(--muted);letter-spacing:3px;font-family:var(--mono)}
+  .search-bar{flex:1;max-width:400px;position:relative}
+  .search-bar input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 14px 7px 34px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .2s}
+  .search-bar input:focus{border-color:var(--cyan)}
+  .search-bar input::placeholder{color:var(--muted)}
+  .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+  .top-nav{display:flex;gap:4px;margin-left:auto}
+  .top-nav a{color:var(--muted);font-size:13px;padding:6px 12px;border-radius:5px;transition:all .2s;cursor:pointer}
+  .top-nav a:hover,.top-nav a.active{color:var(--cyan);background:rgba(47,230,204,0.08)}
+  .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);margin-top:60px}
+  aside{position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;border-right:1px solid var(--border);padding:24px 16px}
+  .sidebar-label{font-size:10px;letter-spacing:3px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;margin-bottom:10px;padding-left:4px}
+  .cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;font-family:var(--font);border-radius:5px;text-align:left;transition:all .2s}
+  .cat-btn:hover{color:var(--text);background:var(--surface2)}
+  .cat-btn.active{color:var(--text);background:var(--surface2)}
+  .cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#5A7A9A}
+  .cat-count{margin-left:auto;font-size:11px;font-family:var(--mono);color:var(--muted)}
+  main{padding:32px 40px;max-width:860px}
+  .page{display:none}.page.visible{display:block}
+  .hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+  .hero-eyebrow{font-size:11px;letter-spacing:4px;font-family:var(--mono);color:var(--cyan);margin-bottom:12px}
+  .hero h1{font-size:32px;font-weight:900;color:white;line-height:1.3;margin-bottom:12px}
+  .hero h1 em{color:var(--cyan);font-style:normal}
+  .hero p{color:var(--muted);max-width:520px}
+  .section-title{font-size:11px;letter-spacing:3px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;margin-bottom:20px}
+  .cards{display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--card-color,var(--cyan));border-radius:8px;padding:18px 22px;cursor:pointer;transition:all .2s}
+  .card:hover{background:var(--surface2);transform:translateX(3px)}
+  .card-meta{display:flex;align-items:center;gap:12px;margin-bottom:7px}
+  .card-cat{font-size:11px;font-family:var(--mono);letter-spacing:1px;color:var(--card-color,var(--cyan))}
+  .card-date{font-size:11px;color:var(--muted);margin-left:auto}
+  .card h2{font-size:16px;font-weight:700;color:white;margin-bottom:7px;line-height:1.4}
+  .card p{font-size:13px;color:var(--muted);line-height:1.6}
+  .card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+  .tag{font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:3px;background:rgba(47,230,204,0.07);border:1px solid rgba(47,230,204,0.18);color:var(--cyan)}
+  .card-arrow{display:flex;justify-content:flex-end;margin-top:10px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .list-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+  .list-title{font-size:20px;font-weight:700;color:white}
+  .result-count{font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .empty{text-align:center;padding:80px 20px;color:var(--muted)}
+  .empty-icon{font-size:40px;margin-bottom:14px;opacity:.4}
+  .empty h3{font-size:15px;color:var(--text);margin-bottom:6px}
+  .article-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:28px;cursor:pointer;border:none;background:none;padding:0;transition:color .2s}
+  .article-back:hover{color:var(--cyan)}
+  .article-eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .article-cat-badge{font-size:11px;font-family:var(--mono);letter-spacing:1px;padding:3px 10px;border-radius:3px}
+  .article-date{font-size:12px;color:var(--muted)}
+  .article-title{font-size:26px;font-weight:900;color:white;line-height:1.3;margin-bottom:14px}
+  .article-tags{display:flex;flex-wrap:wrap;gap:6px}
+  .article-body{border-top:1px solid var(--border);padding-top:30px;margin-top:28px}
+  .article-body h2{font-size:19px;font-weight:700;color:var(--cyan);margin:30px 0 11px;padding-left:12px;border-left:3px solid var(--cyan)}
+  .article-body h3{font-size:15px;font-weight:700;color:white;margin:22px 0 9px}
+  .article-body p{color:var(--text);margin-bottom:13px;line-height:1.8}
+  .article-body ul,.article-body ol{padding-left:20px;margin-bottom:13px}
+  .article-body li{color:var(--text);margin-bottom:5px;line-height:1.7}
+  .article-body strong{color:white}
+  .article-body em{color:var(--amber);font-style:normal}
+  .article-body blockquote{border-left:3px solid var(--amber);padding:11px 16px;background:rgba(255,180,84,0.05);border-radius:0 6px 6px 0;margin:14px 0}
+  .article-body code{font-family:var(--mono);font-size:13px;background:var(--surface2);padding:2px 6px;border-radius:3px;color:var(--cyan)}
+  .article-body pre{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px;margin:14px 0;overflow-x:auto}
+  .article-body pre code{background:none;padding:0;color:var(--text)}
+  .article-body table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  .article-body th{background:var(--surface2);color:var(--cyan);padding:9px 13px;text-align:left;border-bottom:2px solid var(--border);font-family:var(--mono);font-size:12px;letter-spacing:1px}
+  .article-body td{padding:9px 13px;border-bottom:1px solid var(--border);color:var(--text)}
+  .article-body tr:last-child td{border-bottom:none}
+  .article-body tr:hover td{background:var(--surface2)}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  @media(max-width:700px){.layout{grid-template-columns:1fr}aside{display:none}main{padding:24px 16px}.hero h1{font-size:24px}}
 </style>
 </head>
 <body>
-
-<div class="shell">
-  <header>
-    <div class="brand">
-      <span class="mark">ψ-NET</span>
-      <h1>案頭</h1>
-      <span class="sub">CLINICAL PSYCH // NEURAL INDEX // NO DOMAIN REQUIRED</span>
+<header>
+  <div class="brand" onclick="navigate('home')">
+    <span class="brand-mark">ψ</span>
+    <div class="brand-text">臨床心理學筆記<span>PSI-NOTE</span></div>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <input id="searchInput" type="text" placeholder="搜尋筆記標題或標籤…" oninput="onSearch()">
+  </div>
+  <nav class="top-nav">
+    <a id="nav-home" onclick="navigate('home')">首頁</a>
+    <a id="nav-list" onclick="navigate('list')">所有筆記</a>
+  </nav>
+</header>
+<div class="layout">
+  <aside>
+    <div class="sidebar-label">分類</div>
+    <button class="cat-btn active" id="cat-all" onclick="filterCat('all')">
+      <span class="cat-dot"></span>全部<span class="cat-count" id="count-all">0</span>
+    </button>
+    <div id="cat-list"></div>
+  </aside>
+  <main>
+    <div class="page" id="page-home">
+      <div class="hero">
+        <div class="hero-eyebrow">CLINICAL PSYCHOLOGY NOTES</div>
+        <h1>臨床心理學<em>學習筆記</em></h1>
+        <p>整理研究所考科、國家考試、以及相關心理學知識的個人學習筆記庫。</p>
+      </div>
+      <div class="section-title">最新筆記</div>
+      <div class="cards" id="home-cards"></div>
     </div>
-    <div class="searchwrap">
-      <input id="searchInput" type="text" placeholder="搜尋節點...">
+    <div class="page" id="page-list">
+      <div class="list-header">
+        <div class="list-title">所有筆記</div>
+        <div class="result-count" id="result-count"></div>
+      </div>
+      <div class="cards" id="list-cards"></div>
+      <div class="empty" id="list-empty" style="display:none">
+        <div class="empty-icon">🔍</div>
+        <h3>找不到相關筆記</h3>
+        <p>試試其他關鍵字，或清除篩選條件</p>
+      </div>
     </div>
-  </header>
-
-  <nav class="sidebar" id="sidebar"></nav>
-
-  <main class="stage">
-    <svg id="graph"></svg>
-
-    <div class="legend">
-      <div class="row"><span class="swatch" style="background:var(--violet); color:var(--violet)"></span> 結構節點</div>
-      <div class="row"><span class="swatch" style="background:var(--cyan); color:var(--cyan)"></span> 研究所考科</div>
-      <div class="row"><span class="swatch" style="background:var(--magenta); color:var(--magenta)"></span> 國考科目</div>
-      <div class="row"><span class="swatch" style="background:var(--amber); color:var(--amber)"></span> 其他相關領域</div>
-      <div class="row"><span class="swatch diamond" style="background:var(--blue); color:var(--blue)"></span> 社群／外部連結</div>
-      <div class="row"><span class="line-sample"></span> 從屬關係</div>
-      <div class="row"><span class="line-sample cross"></span> 跨域連結（含社群雙向連結）</div>
+    <div class="page" id="page-article">
+      <button class="article-back" id="back-btn">← 返回</button>
+      <div class="article-eyebrow">
+        <span class="article-cat-badge" id="a-cat"></span>
+        <span class="article-date" id="a-date"></span>
+      </div>
+      <h1 class="article-title" id="a-title"></h1>
+      <div class="article-tags" id="a-tags"></div>
+      <div class="article-body" id="a-body"></div>
     </div>
-    <div class="hint">拖曳節點、滾輪縮放。<br>菱形節點＝外部社群連結，可雙向跳轉。</div>
-
-    <aside class="panel" id="panel">
-      <div class="panel-inner" id="panelInner"></div>
-      <button class="panel-close" id="panelClose">✕</button>
-    </aside>
   </main>
 </div>
-
 <script>
-const CATS = {
-  root:    {label:"臨床心理學", hex:"#8C6BFF"},
-  hub:     {label:"分類",       hex:"#8C6BFF"},
-  grad:    {label:"研究所考科", hex:"#2FE6CC"},
-  license: {label:"國考科目",   hex:"#FF3D7A"},
-  related: {label:"其他相關領域", hex:"#FFB454"},
-  social:  {label:"社群／外部連結", hex:"#4DA8FF"},
-};
-
-const nodes = [
-  {id:"root", name:"臨床心理學", type:"root", cat:"root",
-    summary:"整個神經索引的根節點。研究所考科、國考科目、相關領域與外部社群內容，最終都收斂回臨床實務與診斷思維。"},
-
-  {id:"hub-grad", name:"一、研究所", type:"hub", cat:"grad",
-    summary:"準備臨床心理所考試的六大核心科目：統計、變態、認知、發展、衡鑑、實驗。"},
-  {id:"hub-license", name:"二、國考", type:"hub", cat:"license",
-    summary:"心理師國考臨床心理學科目，分基礎、總論（一）（二）、特論（一）（二）（三），目前以基礎為主。"},
-  {id:"hub-related", name:"三、其他心理學", type:"hub", cat:"related",
-    summary:"精神分析、諮商相關的延伸閱讀，補強臨床思維的理論深度。"},
-
-  {id:"stat", name:"心理統計", type:"leaf", cat:"grad",
-    summary:"以 Aron et al.《Statistics for Psychology》搭配唐麗英老師的影片建立計算直覺，是衡鑑信效度與研究方法的地基。",
-    resources:["Aron, Aron & Coups — Statistics for Psychology","唐麗英老師 YouTube 統計教學系列"]},
-  {id:"abnormal", name:"變態心理學", type:"leaf", cat:"grad",
-    summary:"以 Kring & Johnson 為主，整理各疾患的定義、病程與成因模型，是國考總論（一）的理論前身。",
-    resources:["Kring & Johnson — Abnormal Psychology"]},
-  {id:"cognitive", name:"認知心理學", type:"leaf", cat:"grad",
-    summary:"記憶、注意力、執行功能等基礎歷程，後續會用在衡鑑工具的解讀與神經心理衡鑑。",
-    resources:["認知心理學課程筆記（NTUA）"]},
-  {id:"development", name:"發展心理學", type:"leaf", cat:"grad",
-    summary:"從依附、客體恆常到青少年認同發展，是理解兒童青少年發展障礙與依附型態的基礎。",
-    resources:["發展心理學講義整理"]},
-  {id:"assessment", name:"心理衡鑑", type:"leaf", cat:"grad",
-    summary:"晤談、心理測驗、行為觀察三大衡鑑方法，與統計的信效度概念直接掛勾。",
-    resources:["心理衡鑑筆記（Notion 知識庫）"]},
-  {id:"experiment", name:"心理實驗", type:"leaf", cat:"grad",
-    summary:"研究設計與實驗法的基本邏輯，支撐日後閱讀實證研究論文（如 Peng et al. 2021）的能力。",
-    resources:["心理實驗設計筆記"]},
-
-  {id:"lic-basic", name:"臨床心理學基礎", type:"leaf", cat:"license",
-    summary:"國考目前最熟的一科，涵蓋臨床心理學的歷史、模式與專業倫理基礎。"},
-  {id:"lic-gen1", name:"臨床心理學總論（一）", type:"leaf", cat:"license",
-    summary:"偏差行為的定義與描述、偏差行為的成因，是變態心理學在國考脈絡下的延伸。"},
-  {id:"lic-gen2", name:"臨床心理學總論（二）", type:"leaf", cat:"license",
-    summary:"心理衡鑑、心理治療的總論，銜接研究所階段學到的衡鑑方法論。"},
-  {id:"lic-special1", name:"臨床心理學特論（一）", type:"leaf", cat:"license",
-    summary:"自殺防治、暴力行為、物質濫用、性格與適應障礙的衡鑑與治療。"},
-  {id:"lic-special2", name:"臨床心理學特論（二）", type:"leaf", cat:"license",
-    summary:"心智功能不全、精神病、兒童青少年發展障礙的衡鑑與治療。"},
-  {id:"lic-special3", name:"臨床心理學特論（三）", type:"leaf", cat:"license",
-    summary:"飲食障礙、精神官能症、壓力身心反應與健康行為。"},
-
-  {id:"personality", name:"性格心理學", type:"leaf", cat:"related",
-    summary:"性格理論與測量，補強對「性格與適應障礙」這類國考主題的理解深度。"},
-  {id:"social-sci", name:"社會心理學", type:"leaf", cat:"related",
-    summary:"提供理解壓力、健康行為與汙名化等臨床現象的社會脈絡視角。"},
-  {id:"object-relations", name:"客體關係", type:"leaf", cat:"related",
-    summary:"精神動力取向中對早期關係如何形塑性格與適應的理論，呼應 IFS、依附等自我探索工作。",
-    resources:["客體關係理論筆記"]},
-
-  {id:"social-threads", name:"Threads — REBT 自助表系列", type:"social", cat:"social",
-    external:"https://www.threads.net/",
-    summary:"在 Threads 上連載 REBT Self-Help Form 的個人案例拆解。讀者常從這裡點進來看完整理論，這個節點就是反向入口。"},
-  {id:"social-blog", name:"部落格 kurin.space", type:"social", cat:"social",
-    external:"https://kurin.space",
-    summary:"筆名「玄成」發布影評與心理學長文的地方，例如以《攻殼機動隊》談意識哲學。長文留在部落格，理論基礎回連到這裡。"},
-];
-
-const hierarchyLinks = [
-  ["root","hub-grad"], ["root","hub-license"], ["root","hub-related"],
-  ["hub-grad","stat"], ["hub-grad","abnormal"], ["hub-grad","cognitive"],
-  ["hub-grad","development"], ["hub-grad","assessment"], ["hub-grad","experiment"],
-  ["hub-license","lic-basic"], ["hub-license","lic-gen1"], ["hub-license","lic-gen2"],
-  ["hub-license","lic-special1"], ["hub-license","lic-special2"], ["hub-license","lic-special3"],
-  ["hub-related","personality"], ["hub-related","social-sci"], ["hub-related","object-relations"],
-].map(([s,t])=>({source:s,target:t,kind:"hierarchy"}));
-
-const crossLinks = [
-  {source:"abnormal", target:"lic-gen1", kind:"cross", label:"共同主題：偏差行為的定義與分類"},
-  {source:"assessment", target:"lic-gen2", kind:"cross", label:"共同主題：衡鑑工具與信效度的應用"},
-  {source:"stat", target:"assessment", kind:"cross", label:"共同主題：信度、效度的統計基礎"},
-  {source:"object-relations", target:"lic-special1", kind:"cross", label:"共同主題：性格與適應障礙的精神動力觀點"},
-  {source:"personality", target:"lic-special1", kind:"cross", label:"共同主題：性格與適應障礙之衡鑑與治療"},
-  {source:"development", target:"lic-special2", kind:"cross", label:"共同主題：兒童與青少年發展障礙"},
-  {source:"social-sci", target:"lic-special3", kind:"cross", label:"共同主題：壓力身心反應的社會脈絡"},
-  {source:"social-threads", target:"personality", kind:"cross", label:"Threads 案例延伸：性格與適應障礙的自助練習"},
-  {source:"social-threads", target:"object-relations", kind:"cross", label:"Threads 案例延伸：早期關係與情緒調節"},
-  {source:"social-blog", target:"abnormal", kind:"cross", label:"部落格長文：偏差行為的影評視角"},
-];
-
-const links = [...hierarchyLinks, ...crossLinks];
-const byId = Object.fromEntries(nodes.map(n=>[n.id,n]));
-
-const sidebar = document.getElementById('sidebar');
-function buildSidebar(){
-  const groups = [
-    {tab:"研究所考科", cls:"tab-grad", ids:nodes.filter(n=>n.cat==="grad"&&n.type==="leaf").map(n=>n.id)},
-    {tab:"國考科目", cls:"tab-license", ids:nodes.filter(n=>n.cat==="license"&&n.type==="leaf").map(n=>n.id)},
-    {tab:"其他相關領域", cls:"tab-related", ids:nodes.filter(n=>n.cat==="related"&&n.type==="leaf").map(n=>n.id)},
-    {tab:"社群／外部連結", cls:"tab-social", ids:nodes.filter(n=>n.cat==="social").map(n=>n.id), social:true},
-  ];
-  let html = "";
-  groups.forEach(g=>{
-    html += `<div class="folder-group">
-      <div class="folder-tab ${g.cls}"><span class="dot"></span>${g.tab}</div>
-      ${g.ids.map(id=>`<button class="leaf-item ${g.social?'social-item':''}" data-id="${id}">${byId[id].name}</button>`).join("")}
-    </div>`;
-  });
-  html += `<div class="folder-group">
-    <div class="folder-tab" style="color:var(--text-dim)"><span class="dot"></span>留言層（規劃中）</div>
-    <div class="community-note">每篇筆記下方預留 Giscus 留言區（用 GitHub Discussions 當後台），跟社群節點互補：社群節點負責「導流」，留言區負責「就地討論」。</div>
-  </div>`;
-  sidebar.innerHTML = html;
-  sidebar.querySelectorAll('.leaf-item').forEach(btn=>{
-    btn.addEventListener('click', ()=> focusNode(btn.dataset.id));
+const COLORS={'研究所考科':'#2FE6CC','國考科目':'#FF3D7A','其他心理學':'#FFB454','讀書心得':'#4DA8FF'};
+let articles=[],currentCat='all',currentSearch='',prevPage='home',currentPage='home';
+async function init(){
+  try{const d=await fetch('./articles.json').then(r=>r.json());articles=(d.articles||[]).sort((a,b)=>new Date(b.date)-new Date(a.date));buildSidebar(d.categories||[]);}
+  catch(e){articles=[];buildSidebar([]);}
+  document.getElementById('back-btn').onclick=()=>navigate(prevPage);
+  route();window.addEventListener('hashchange',route);
+}
+function route(){const h=window.location.hash||'#home';if(h.startsWith('#article/'))showArticle(h.slice(9));else if(h==='#list')showPage('list');else showPage('home');}
+function navigate(p){window.location.hash='#'+p;}
+function showPage(page){
+  prevPage=currentPage;currentPage=page;
+  document.querySelectorAll('.top-nav a').forEach(a=>a.classList.remove('active'));
+  const n=document.getElementById('nav-'+page);if(n)n.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('visible'));
+  document.getElementById('page-'+page).classList.add('visible');
+  if(page==='home')renderHome();if(page==='list')renderList();
+}
+function showArticle(id){
+  const a=articles.find(x=>x.id===id);if(!a){navigate('list');return;}
+  prevPage=currentPage;currentPage='article';
+  document.querySelectorAll('.top-nav a').forEach(a=>a.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('visible'));
+  document.getElementById('page-article').classList.add('visible');
+  const c=COLORS[a.category]||'#2FE6CC';
+  const cat=document.getElementById('a-cat');
+  cat.textContent=a.category;cat.style.cssText='color:'+c+';border:1px solid '+c+'44;background:'+c+'18;';
+  document.getElementById('a-date').textContent=fmtDate(a.date);
+  document.getElementById('a-title').textContent=a.title;
+  document.getElementById('a-body').innerHTML=a.content;
+  document.getElementById('a-tags').innerHTML=(a.tags||[]).map(t=>'<span class="tag">'+t+'</span>').join('');
+  window.scrollTo(0,0);
+}
+function buildSidebar(cats){
+  document.getElementById('count-all').textContent=articles.length;
+  document.getElementById('cat-list').innerHTML=cats.map(cat=>{
+    const c=COLORS[cat]||'#5A7A9A',n=articles.filter(a=>a.category===cat).length;
+    return '<button class="cat-btn" id="cb-'+eid(cat)+'" onclick="filterCat(\''+cat+'\')">'+
+      '<span class="cat-dot" style="background:'+c+'"></span>'+cat+'<span class="cat-count">'+n+'</span></button>';
+  }).join('');
+}
+function filterCat(cat){
+  currentCat=cat;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById(cat==='all'?'cat-all':'cb-'+eid(cat));if(btn)btn.classList.add('active');
+  navigate('list');
+}
+function onSearch(){currentSearch=document.getElementById('searchInput').value.toLowerCase().trim();navigate('list');}
+function getFiltered(){
+  return articles.filter(a=>{
+    const mc=currentCat==='all'||a.category===currentCat;
+    const mq=!currentSearch||a.title.toLowerCase().includes(currentSearch)||(a.summary||'').toLowerCase().includes(currentSearch)||(a.tags||[]).some(t=>t.toLowerCase().includes(currentSearch));
+    return mc&&mq;
   });
 }
-buildSidebar();
-
-const svg = d3.select("#graph");
-const stage = document.querySelector('main.stage');
-let width = stage.clientWidth, height = stage.clientHeight;
-svg.attr("viewBox", [0,0,width,height]);
-
-svg.append("defs").html(`
-  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
-    <feGaussianBlur stdDeviation="4.2" result="blur"/>
-    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-  </filter>
-`);
-
-const g = svg.append("g");
-svg.call(d3.zoom().scaleExtent([0.4,2.5]).on("zoom", (ev)=> g.attr("transform", ev.transform)));
-
-function radius(n){ return n.type==="root" ? 30 : n.type==="hub" ? 21 : n.type==="social" ? 15 : 13; }
-function fill(n){ return CATS[n.cat].hex; }
-
-const sim = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(links).id(d=>d.id).distance(l=> l.kind==="cross" ? 175 : 92).strength(l=> l.kind==="cross" ? 0.3 : 0.9))
-  .force("charge", d3.forceManyBody().strength(-280))
-  .force("center", d3.forceCenter(width/2, height/2))
-  .force("collide", d3.forceCollide().radius(d=>radius(d)+28));
-
-const linkSel = g.append("g").selectAll("path")
-  .data(links).join("path")
-  .attr("class", d=> d.kind==="cross" ? "cross-link" : "")
-  .attr("fill","none")
-  .attr("stroke", d=> d.kind==="cross" ? (d.source.cat==="social"||d.target.cat==="social" ? "var(--blue)" : "var(--magenta)") : "rgba(120,200,210,0.3)")
-  .attr("stroke-opacity", d=> d.kind==="cross" ? 0.75 : 0.45)
-  .attr("stroke-width", d=> d.kind==="cross" ? 1.6 : 1.1)
-  .attr("stroke-dasharray", d=> d.kind==="cross" ? "5,5" : "none")
-  .style("cursor", d=> d.kind==="cross" ? "pointer" : "default")
-  .on("click", (ev,d)=>{ if(d.kind==="cross") showCrossLabel(ev,d); });
-
-const nodeSel = g.append("g").selectAll("g")
-  .data(nodes).join("g")
-  .style("cursor","pointer")
-  .call(d3.drag()
-    .on("start",(ev,d)=>{ if(!ev.active) sim.alphaTarget(0.25).restart(); d.fx=d.x; d.fy=d.y; })
-    .on("drag",(ev,d)=>{ d.fx=ev.x; d.fy=ev.y; })
-    .on("end",(ev,d)=>{ if(!ev.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }));
-
-nodeSel.each(function(d){
-  const sel = d3.select(this);
-  const r = radius(d);
-  const color = fill(d);
-  if(d.type==="social"){
-    sel.append("rect")
-      .attr("x",-r*0.72).attr("y",-r*0.72).attr("width",r*1.44).attr("height",r*1.44)
-      .attr("transform","rotate(45)")
-      .attr("fill","var(--surface-2)")
-      .attr("stroke", color).attr("stroke-width",1.6)
-      .attr("filter","url(#glow)")
-      .style("filter","url(#glow)");
-  } else {
-    sel.append("circle")
-      .attr("r", r)
-      .attr("fill", d.type==="leaf" ? "var(--surface-2)" : color)
-      .attr("stroke", color).attr("stroke-width", d.type==="leaf" ? 1.6 : 1.2)
-      .attr("filter","url(#glow)");
-  }
-});
-
-nodeSel.append("text")
-  .text(d=> d.type==="social" ? "↗" : "")
-  .attr("text-anchor","middle").attr("dy",4)
-  .attr("fill","var(--blue)").attr("font-size",11)
-  .style("pointer-events","none");
-
-nodeSel.append("text")
-  .text(d=>d.name)
-  .attr("text-anchor","middle")
-  .attr("dy", d=> radius(d)+15)
-  .attr("font-family", "'Noto Sans TC',sans-serif")
-  .attr("font-weight", d=> d.type!=="leaf" ? 700 : 400)
-  .attr("font-size", d=> d.type==="root" ? 13.5 : d.type==="hub" ? 12 : 11)
-  .attr("fill","var(--text)")
-  .style("pointer-events","none");
-
-nodeSel.on("click", (ev,d)=>{ ev.stopPropagation(); openPanel(d.id); });
-svg.on("click", ()=> closePanel());
-
-function curvedPath(d){
-  const sx=d.source.x, sy=d.source.y, tx=d.target.x, ty=d.target.y;
-  if(d.kind!=="cross") return `M${sx},${sy} L${tx},${ty}`;
-  const mx=(sx+tx)/2, my=(sy+ty)/2;
-  const dx=tx-sx, dy=ty-sy;
-  const nx=-dy, ny=dx;
-  const norm=Math.sqrt(nx*nx+ny*ny)||1;
-  const curve=24;
-  const cx=mx+(nx/norm)*curve, cy=my+(ny/norm)*curve;
-  return `M${sx},${sy} Q${cx},${cy} ${tx},${ty}`;
+function renderHome(){document.getElementById('home-cards').innerHTML=articles.slice(0,5).map(cardHTML).join('');}
+function renderList(){
+  const f=getFiltered();
+  document.getElementById('result-count').textContent=f.length+' 篇';
+  document.getElementById('list-empty').style.display=f.length?'none':'block';
+  document.getElementById('list-cards').innerHTML=f.map(cardHTML).join('');
 }
-
-sim.on("tick", ()=>{
-  linkSel.attr("d", curvedPath);
-  nodeSel.attr("transform", d=>`translate(${d.x},${d.y})`);
-});
-
-window.addEventListener('resize', ()=>{
-  width = stage.clientWidth; height = stage.clientHeight;
-  svg.attr("viewBox", [0,0,width,height]);
-  sim.force("center", d3.forceCenter(width/2,height/2));
-  sim.alpha(0.3).restart();
-});
-
-const panel = document.getElementById('panel');
-const panelInner = document.getElementById('panelInner');
-document.getElementById('panelClose').addEventListener('click', closePanel);
-
-function relatedFor(id){
-  return links.filter(l=>{
-    const s = typeof l.source==="object" ? l.source.id : l.source;
-    const t = typeof l.target==="object" ? l.target.id : l.target;
-    return s===id || t===id;
-  }).map(l=>{
-    const s = typeof l.source==="object" ? l.source.id : l.source;
-    const t = typeof l.target==="object" ? l.target.id : l.target;
-    const otherId = s===id ? t : s;
-    return {id:otherId, kind:l.kind, label:l.label};
-  }).filter(r=> byId[r.id]);
+function cardHTML(a){
+  const c=COLORS[a.category]||'#2FE6CC';
+  const tags=(a.tags||[]).map(t=>'<span class="tag">'+t+'</span>').join('');
+  return '<div class="card" style="--card-color:'+c+'" onclick="window.location.hash=\'#article/'+a.id+'\'">'+
+    '<div class="card-meta"><span class="card-cat">'+a.category+'</span><span class="card-date">'+fmtDate(a.date)+'</span></div>'+
+    '<h2>'+a.title+'</h2><p>'+(a.summary||'')+'</p>'+
+    (tags?'<div class="card-tags">'+tags+'</div>':'')+
+    '<div class="card-arrow">閱讀全文 →</div></div>';
 }
-
-function openPanel(id){
-  const n = byId[id];
-  const rel = relatedFor(id);
-  const cat = CATS[n.cat];
-  panelInner.innerHTML = `
-    <span class="panel-tag" style="background:${cat.hex}">${cat.label}</span>
-    <h2>${n.name}</h2>
-    <span class="panel-id">NODE_ID · ${n.id}</span>
-    <div class="panel-section">
-      <h3>筆記摘要</h3>
-      <p>${n.summary}</p>
-    </div>
-    ${n.external ? `<div class="panel-section"><a class="external-btn" href="${n.external}" target="_blank" rel="noopener">↗ 開啟原始連結</a></div>` : ""}
-    ${n.resources ? `<div class="panel-section"><h3>學習資源</h3><ul>${n.resources.map(r=>`<li>${r}</li>`).join("")}</ul></div>` : ""}
-    ${rel.length ? `<div class="panel-section"><h3>相關節點（${rel.length}）</h3>
-      ${rel.map(r=>`<button class="related-link" data-id="${r.id}">
-          <span class="dot" style="background:${CATS[byId[r.id].cat].hex}; color:${CATS[byId[r.id].cat].hex}"></span>
-          <span>${byId[r.id].name}${r.kind==="cross" && r.label ? `<span class="rel-note">${r.label}</span>` : ""}</span>
-        </button>`).join("")}
-      </div>` : ""}
-  `;
-  panelInner.querySelectorAll('.related-link').forEach(btn=>{
-    btn.addEventListener('click', ()=> focusNode(btn.dataset.id));
-  });
-  panel.classList.add('open');
-  highlightNeighbors(id);
-}
-function closePanel(){ panel.classList.remove('open'); highlightNeighbors(null); }
-function focusNode(id){ openPanel(id); sim.alpha(0.15).restart(); }
-function showCrossLabel(ev,d){ ev.stopPropagation(); alert(d.label || "跨域連結"); }
-
-function highlightNeighbors(id){
-  if(!id){
-    nodeSel.style("opacity",1);
-    linkSel.style("opacity", d=> d.kind==="cross" ? 0.75 : 0.45);
-    return;
-  }
-  const rel = new Set(relatedFor(id).map(r=>r.id));
-  rel.add(id);
-  nodeSel.style("opacity", d=> rel.has(d.id) ? 1 : 0.18);
-  linkSel.style("opacity", d=>{
-    const s = typeof d.source==="object" ? d.source.id : d.source;
-    const t = typeof d.target==="object" ? d.target.id : d.target;
-    return (s===id || t===id) ? 1 : 0.05;
-  });
-}
-
-const searchInput = document.getElementById('searchInput');
-searchInput.addEventListener('input', ()=>{
-  const q = searchInput.value.trim().toLowerCase();
-  if(!q){ nodeSel.style("opacity",1); sidebar.querySelectorAll('.leaf-item').forEach(b=>b.style.opacity=1); return; }
-  nodeSel.style("opacity", d=> (d.name.toLowerCase().includes(q) || (d.summary||"").toLowerCase().includes(q)) ? 1 : 0.12);
-  sidebar.querySelectorAll('.leaf-item').forEach(b=>{
-    const n = byId[b.dataset.id];
-    b.style.opacity = (n.name.toLowerCase().includes(q) || (n.summary||"").toLowerCase().includes(q)) ? 1 : 0.3;
-  });
-});
+function fmtDate(s){if(!s)return'';const d=new Date(s);return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');}
+function eid(s){return s.replace(/\s+/g,'_');}
+init();
 </script>
 </body>
 </html>

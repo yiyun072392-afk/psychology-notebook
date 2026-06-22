@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ψ-NOTE 編輯器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#080B0F;--surface:#0E141B;--surface2:#141C26;--border:#1E2D3D;--text:#C8D8E8;--muted:#5A7A9A;--cyan:#2FE6CC;--magenta:#FF3D7A;--amber:#FFB454;--font:'Noto Sans TC',sans-serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+  a{color:var(--cyan);text-decoration:none}
+  /* HEADER */
+  header{background:rgba(8,11,15,0.95);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+  .hbrand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--cyan)}
+  .hbrand a{color:var(--muted);font-size:12px;font-weight:400;margin-left:6px}
+  .hbrand a:hover{color:var(--cyan)}
+  .hsave{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn{padding:7px 16px;border-radius:5px;font-size:13px;font-family:var(--font);font-weight:500;cursor:pointer;border:none;transition:all .2s}
+  .btn-primary{background:var(--cyan);color:#000}
+  .btn-primary:hover{background:#1ec9b2}
+  .btn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}
+  .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .save-status{font-size:12px;color:var(--muted);font-family:var(--mono)}
+  /* LAYOUT */
+  .app{display:grid;grid-template-columns:260px 1fr;height:calc(100vh - 56px)}
+  /* SIDEBAR */
+  .sidebar{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+  .sidebar-head{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .sidebar-head h2{font-size:13px;font-weight:600;color:var(--text)}
+  .btn-new{font-size:12px;padding:4px 10px}
+  .article-list{flex:1;overflow-y:auto;padding:8px}
+  .a-item{padding:10px 12px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:background .15s}
+  .a-item:hover{background:var(--surface2)}
+  .a-item.active{background:var(--surface2);border-left:2px solid var(--cyan)}
+  .a-item-title{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .a-item-meta{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+  /* EDITOR AREA */
+  .editor-area{display:flex;flex-direction:column;overflow:hidden}
+  .meta-bar{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+  .meta-row{display:flex;gap:12px;align-items:center}
+  .meta-label{font-size:11px;color:var(--muted);font-family:var(--mono);width:42px;flex-shrink:0}
+  .meta-input{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .2s}
+  .meta-input:focus{border-color:var(--cyan)}
+  .meta-input.title{flex:1;font-size:16px;font-weight:700;background:none;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:4px 0}
+  .meta-input.title:focus{border-color:var(--cyan);border-left:none;border-right:none;border-top:none}
+  .meta-select{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:6px 10px;color:var(--text);font-size:13px;font-family:var(--font);outline:none}
+  .meta-select:focus{border-color:var(--cyan)}
+  /* TOOLBAR */
+  .toolbar{display:flex;gap:2px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap}
+  .tb{background:none;border:none;padding:4px 7px;border-radius:4px;color:var(--muted);cursor:pointer;font-size:13px;font-family:var(--mono);transition:all .15s}
+  .tb:hover{background:var(--surface2);color:var(--text)}
+  .tb-sep{width:1px;background:var(--border);margin:2px 4px}
+  /* EDITOR */
+  .editor-wrap{flex:1;overflow-y:auto;padding:0}
+  #editor{min-height:100%;padding:28px 32px;outline:none;font-size:15px;line-height:1.8;color:var(--text);caret-color:var(--cyan)}
+  #editor:empty::before{content:attr(data-placeholder);color:var(--muted)}
+  #editor h2{font-size:20px;font-weight:700;color:var(--cyan);margin:24px 0 10px;padding-left:12px;border-left:3px solid var(--cyan)}
+  #editor h3{font-size:16px;font-weight:700;color:white;margin:18px 0 8px}
+  #editor p{margin-bottom:12px}
+  #editor ul,#editor ol{padding-left:20px;margin-bottom:12px}
+  #editor li{margin-bottom:4px}
+  #editor strong{color:white}
+  #editor blockquote{border-left:3px solid var(--amber);padding:10px 16px;background:rgba(255,180,84,0.05);border-radius:0 6px 6px 0;margin:12px 0}
+  #editor pre{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px;margin:12px 0;font-family:var(--mono);font-size:13px;color:#a0c0e0;overflow-x:auto}
+  #editor table{width:100%;border-collapse:collapse;margin:12px 0}
+  #editor th{background:var(--surface2);color:var(--cyan);padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-family:var(--mono);font-size:12px}
+  #editor td{padding:8px 12px;border-bottom:1px solid var(--border)}
+  /* SETUP PANEL */
+  .setup{display:flex;align-items:center;justify-content:center;flex:1}
+  .setup-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:36px;max-width:420px;width:100%}
+  .setup-box h2{font-size:18px;font-weight:700;margin-bottom:8px;color:white}
+  .setup-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+  .setup-box .step{font-size:12px;font-family:var(--mono);color:var(--muted);margin-bottom:6px}
+  .setup-box .step strong{color:var(--cyan)}
+  .setup-box input{width:100%;margin-top:16px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none}
+  .setup-box input:focus{border-color:var(--cyan)}
+  .setup-box .btn{width:100%;margin-top:10px;padding:10px}
+  .setup-note{font-size:11px;color:var(--muted);margin-top:10px}
+  /* DELETE */
+  .btn-danger{background:none;border:1px solid var(--magenta);color:var(--magenta);padding:5px 12px;font-size:12px;border-radius:4px;cursor:pointer;transition:all .2s}
+  .btn-danger:hover{background:rgba(255,61,122,0.1)}
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-size:13px;color:var(--text);transition:opacity .3s;opacity:0;pointer-events:none;z-index:999;font-family:var(--mono)}
+  #toast.show{opacity:1}
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbrand">ψ 編輯器 <a href="./index.html">← 返回網站</a></div>
+  <div class="hsave">
+    <span class="save-status" id="save-status"></span>
+    <button class="btn btn-ghost" onclick="deleteArticle()" id="btn-delete" style="display:none">刪除</button>
+    <button class="btn btn-primary" onclick="saveToGitHub()" id="btn-save" disabled>發布到 GitHub</button>
+  </div>
+</header>
+
+<!-- SETUP SCREEN (shown when no PAT) -->
+<div id="setup-screen" style="display:none;height:calc(100vh - 56px)">
+  <div class="setup">
+    <div class="setup-box">
+      <h2>設定 GitHub 存取金鑰</h2>
+      <p>要將文章存到 GitHub，需要一個 Personal Access Token（PAT）。只需設定一次，金鑰會保存在你的瀏覽器中。</p>
+      <div class="step">① 前往 <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong></div>
+      <div class="step">② 點「Generate new token (classic)」</div>
+      <div class="step">③ 勾選 <strong>repo</strong> 權限，生成後複製</div>
+      <input type="password" id="pat-input" placeholder="貼上你的 GitHub Personal Access Token">
+      <button class="btn btn-primary" onclick="savePAT()">儲存並繼續</button>
+      <div class="setup-note">⚠️ 金鑰只儲存在你的瀏覽器 localStorage，不會傳送給第三方。</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN EDITOR (shown when PAT exists) -->
+<div class="app" id="main-screen" style="display:none">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <h2>我的筆記</h2>
+      <button class="btn btn-ghost btn-new" onclick="newArticle()">+ 新增</button>
+    </div>
+    <div class="article-list" id="article-list"></div>
+  </div>
+  <div class="editor-area">
+    <div class="meta-bar">
+      <input class="meta-input title" id="f-title" type="text" placeholder="文章標題">
+      <div class="meta-row">
+        <span class="meta-label">摘要</span>
+        <input class="meta-input" id="f-summary" type="text" placeholder="一句話說明文章內容…" style="flex:1">
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">分類</span>
+        <select class="meta-select" id="f-category">
+          <option>研究所考科</option>
+          <option>國考科目</option>
+          <option>其他心理學</option>
+          <option>讀書心得</option>
+        </select>
+        <span class="meta-label" style="margin-left:16px">標籤</span>
+        <input class="meta-input" id="f-tags" type="text" placeholder="用逗號分隔，如：統計,基礎概念" style="flex:1">
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="tb" onclick="fmt('bold')" title="粗體 Ctrl+B"><b>B</b></button>
+      <button class="tb" onclick="fmt('italic')" title="斜體 Ctrl+I"><i>I</i></button>
+      <button class="tb" onclick="fmt('underline')" title="底線 Ctrl+U"><u>U</u></button>
+      <div class="tb-sep"></div>
+      <button class="tb" onclick="fmtBlock('h2')">H2</button>
+      <button class="tb" onclick="fmtBlock('h3')">H3</button>
+      <button class="tb" onclick="fmtBlock('p')">P</button>
+      <div class="tb-sep"></div>
+      <button class="tb" onclick="fmt('insertUnorderedList')">≡</button>
+      <button class="tb" onclick="fmt('insertOrderedList')">1.</button>
+      <button class="tb" onclick="fmtBlock('blockquote')">"</button>
+      <button class="tb" onclick="insertCode()">{ }</button>
+      <div class="tb-sep"></div>
+      <button class="tb" onclick="insertTable()">⊞ 表格</button>
+    </div>
+    <div class="editor-wrap">
+      <div id="editor" contenteditable="true" data-placeholder="開始寫作…&#10;&#10;支援格式：粗體、標題 H2/H3、清單、引用、程式碼、表格"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const REPO = 'yiyun072392-afk/psychology-notebook';
+const FILE = 'articles.json';
+const API  = 'https://api.github.com/repos/' + REPO + '/contents/' + FILE;
+
+let articles = [];
+let categories = ['研究所考科','國考科目','其他心理學','讀書心得'];
+let currentId = null;
+let fileSha = null;
+let pat = '';
+
+// ── INIT ──
+async function init() {
+  pat = localStorage.getItem('gh_pat') || '';
+  if (!pat) {
+    document.getElementById('setup-screen').style.display = 'flex';
+    return;
+  }
+  document.getElementById('main-screen').style.display = 'grid';
+  await loadFromGitHub();
+}
+
+function savePAT() {
+  const v = document.getElementById('pat-input').value.trim();
+  if (!v) return;
+  localStorage.setItem('gh_pat', v);
+  pat = v;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'grid';
+  loadFromGitHub();
+}
+
+// ── GITHUB API ──
+async function loadFromGitHub() {
+  setStatus('載入中…');
+  try {
+    const res = await fetch(API, { headers: { Authorization: 'token ' + pat, Accept: 'application/vnd.github.v3+json' } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    fileSha = data.sha;
+    const decoded = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    articles = decoded.articles || [];
+    categories = decoded.categories || categories;
+    renderList();
+    setStatus('已同步 GitHub');
+    document.getElementById('btn-save').disabled = false;
+  } catch(e) {
+    setStatus('載入失敗：' + e.message);
+    toast('無法連接 GitHub，請確認 PAT 是否正確');
+  }
+}
+
+async function saveToGitHub() {
+  if (!currentId) { toast('請先選擇或新增一篇文章'); return; }
+  applyEditorToArticle();
+  const body = JSON.stringify({ articles, categories }, null, 2);
+  const encoded = btoa(unescape(encodeURIComponent(body)));
+  setStatus('儲存中…');
+  try {
+    const payload = { message: '更新筆記：' + getCurrentArticle().title, content: encoded };
+    if (fileSha) payload.sha = fileSha;
+    const res = await fetch(API, {
+      method: 'PUT',
+      headers: { Authorization: 'token ' + pat, 'Content-Type': 'application/json', Accept: 'application/vnd.github.v3+json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) { const t = await res.text(); throw new Error(t); }
+    const data = await res.json();
+    fileSha = data.content.sha;
+    setStatus('✓ 已發布');
+    toast('文章已發布！');
+    renderList();
+  } catch(e) {
+    setStatus('發布失敗');
+    toast('發布失敗：' + e.message.slice(0,80));
+  }
+}
+
+// ── ARTICLE MANAGEMENT ──
+function newArticle() {
+  const id = 'art-' + Date.now();
+  const today = new Date().toISOString().slice(0,10);
+  const article = { id, title: '新文章', summary: '', content: '', category: '研究所考科', tags: [], date: today };
+  articles.unshift(article);
+  renderList();
+  selectArticle(id);
+}
+
+function selectArticle(id) {
+  currentId = id;
+  const a = getCurrentArticle();
+  if (!a) return;
+  document.getElementById('f-title').value = a.title;
+  document.getElementById('f-summary').value = a.summary || '';
+  document.getElementById('f-category').value = a.category || '研究所考科';
+  document.getElementById('f-tags').value = (a.tags || []).join(', ');
+  document.getElementById('editor').innerHTML = a.content || '';
+  document.getElementById('btn-delete').style.display = 'inline-flex';
+  document.querySelectorAll('.a-item').forEach(el => el.classList.remove('active'));
+  const item = document.getElementById('item-' + id);
+  if (item) item.classList.add('active');
+}
+
+function applyEditorToArticle() {
+  const a = getCurrentArticle(); if (!a) return;
+  a.title    = document.getElementById('f-title').value.trim() || '無標題';
+  a.summary  = document.getElementById('f-summary').value.trim();
+  a.category = document.getElementById('f-category').value;
+  a.tags     = document.getElementById('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  a.content  = document.getElementById('editor').innerHTML;
+}
+
+function deleteArticle() {
+  if (!currentId) return;
+  if (!confirm('確定要刪除這篇文章嗎？')) return;
+  articles = articles.filter(a => a.id !== currentId);
+  currentId = null;
+  document.getElementById('editor').innerHTML = '';
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-summary').value = '';
+  document.getElementById('f-tags').value = '';
+  document.getElementById('btn-delete').style.display = 'none';
+  renderList();
+  toast('已刪除，記得點「發布到 GitHub」儲存');
+}
+
+function getCurrentArticle() {
+  return articles.find(a => a.id === currentId);
+}
+
+function renderList() {
+  const el = document.getElementById('article-list');
+  if (articles.length === 0) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">還沒有文章，點「+ 新增」開始吧</div>';
+    return;
+  }
+  el.innerHTML = articles.map(a => {
+    const active = a.id === currentId ? ' active' : '';
+    return '<div class="a-item'+active+'" id="item-'+a.id+'" onclick="selectArticle(''+a.id+'')">'+
+      '<div class="a-item-title">'+(a.title||'無標題')+'</div>'+
+      '<div class="a-item-meta">'+a.category+' · '+fmtDate(a.date)+'</div>'+
+      '</div>';
+  }).join('');
+}
+
+// ── RICH TEXT EDITOR ──
+function fmt(cmd) { document.getElementById('editor').focus(); document.execCommand(cmd, false, null); }
+function fmtBlock(tag) { document.getElementById('editor').focus(); document.execCommand('formatBlock', false, tag); }
+function insertCode() {
+  document.getElementById('editor').focus();
+  const sel = window.getSelection();
+  if (sel.rangeCount) {
+    const range = sel.getRangeAt(0);
+    const pre = document.createElement('pre');
+    const selected = sel.toString();
+    pre.textContent = selected || '// 程式碼';
+    range.deleteContents();
+    range.insertNode(pre);
+  }
+}
+function insertTable() {
+  document.getElementById('editor').focus();
+  const html = '<table><thead><tr><th>欄位一</th><th>欄位二</th></tr></thead><tbody><tr><td>內容</td><td>內容</td></tr></tbody></table><p></p>';
+  document.execCommand('insertHTML', false, html);
+}
+
+// ── UI HELPERS ──
+function setStatus(msg) { document.getElementById('save-status').textContent = msg; }
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+function fmtDate(s){ if(!s)return''; const d=new Date(s); return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'); }
+
+// Auto-save draft to localStorage on input
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('editor').addEventListener('input', () => {
+    if (currentId) {
+      applyEditorToArticle();
+      setStatus('（未發布）');
+    }
+  });
+  ['f-title','f-summary','f-category','f-tags'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      if (currentId) { applyEditorToArticle(); setStatus('（未發布）'); }
+    });
+  });
+});
+
+// ── CLEAR PAT BUTTON (footer) ──
+function clearPAT() { localStorage.removeItem('gh_pat'); location.reload(); }
+
+init();
+</script>
+
+<div style="position:fixed;bottom:12px;left:16px">
+  <button onclick="clearPAT()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--mono)">清除金鑰</button>
+</div>
+</body>
+</html>

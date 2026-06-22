@@ -1,0 +1,23 @@
+{
+  "articles": [
+    {
+      "id": "stats-001",
+      "title": "心理統計學：描述統計與推論統計",
+      "summary": "整理心理學研究最常考的統計基礎概念，包含集中趨勢量數、變異量數，以及 t 檢定的邏輯與應用。",
+      "content": "<h2>描述統計（Descriptive Statistics）</h2><p>描述統計的目的是整理、呈現資料的特徵，不涉及推論。主要分為兩類量數：</p><h3>集中趨勢量數</h3><ul><li><strong>平均數（Mean）</strong>：所有數值的總和除以個數，對極端值敏感</li><li><strong>中位數（Median）</strong>：排序後的中間值，適合偏態分布</li><li><strong>眾數（Mode）</strong>：出現頻率最高的值</li></ul><h3>變異量數</h3><ul><li><strong>全距（Range）</strong>：最大值 - 最小值</li><li><strong>標準差（SD）</strong>：資料點與平均數的平均距離</li><li><strong>變異數（Variance）</strong>：標準差的平方</li></ul><h2>推論統計（Inferential Statistics）</h2><p>透過樣本來推論母群體的特徵，核心概念是<strong>虛無假設（H₀）</strong>與<strong>對立假設（H₁）</strong>的檢定。</p><h3>t 檢定三種類型</h3><table><thead><tr><th>類型</th><th>使用時機</th></tr></thead><tbody><tr><td>單一樣本 t 檢定</td><td>一組樣本的均值是否等於已知常數</td></tr><tr><td>獨立樣本 t 檢定</td><td>兩組獨立樣本的均值是否有差異</td></tr><tr><td>相依樣本 t 檢定</td><td>同一組受試者前後測的差異</td></tr></tbody></table>",
+      "category": "研究所考科",
+      "tags": ["統計", "基礎概念", "Aron"],
+      "date": "2024-01-15"
+    },
+    {
+      "id": "abnormal-001",
+      "title": "變態心理學：焦慮症類群 DSM-5 整理",
+      "summary": "DSM-5 焦慮症類群（Anxiety Disorders）的診斷準則整理，包含廣泛性焦慮症、社交焦慮症與恐慌症的核心特徵。",
+      "content": "<h2>焦慮症類群（Anxiety Disorders）</h2><p>焦慮症是最常見的心理疾患類別之一，終生盛行率約 <strong>28.8%</strong>（Kessler et al., 2005）。特徵是對威脅的過度恐懼或擔憂，以及相關的行為障礙。</p><h2>廣泛性焦慮症（GAD）</h2><p>核心特徵：對多種事件或活動有<strong>過度且難以控制的擔憂</strong>，持續至少 6 個月。</p><h3>附帶症狀（需 ≥ 3 項，兒童只需 1 項）</h3><table><thead><tr><th>症狀</th><th>說明</th></tr></thead><tbody><tr><td>坐立不安</td><td>感到緊繃或焦躁</td></tr><tr><td>易疲倦</td><td>容易感到精疲力竭</td></tr><tr><td>注意力難以集中</td><td>腦袋空白</td></tr><tr><td>易怒</td><td>情緒煩躁</td></tr><tr><td>肌肉緊張</td><td>身體張力高</td></tr><tr><td>睡眠障礙</td><td>入睡困難或睡眠品質差</td></tr></tbody></table><h2>社交焦慮症（Social Anxiety Disorder）</h2><p>核心特徵：對<strong>可能被他人審視的社交情境</strong>有顯著的恐懼或焦慮，且恐懼程度與實際威脅不成比例，持續 ≥ 6 個月。常見的迴避行為包含：拒絕發言、避免眼神接觸、不參加社交活動。</p><h2>恐慌症（Panic Disorder）</h2><p>核心特徵：反覆出現<strong>意料外的恐慌發作</strong>，且至少有一次發作後有持續 1 個月以上的擔心再次發作，或明顯的適應不良行為改變。</p>",
+      "category": "研究所考科",
+      "tags": ["變態心理學", "焦慮症", "DSM-5", "Kring"],
+      "date": "2024-01-22"
+    }
+  ],
+  "categories": ["研究所考科", "國考科目", "其他心理學", "讀書心得"]
+}
