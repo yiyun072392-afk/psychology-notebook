@@ -207,7 +207,8 @@ async function loadFromGitHub() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     fileSha = data.sha;
-    const decoded = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    const bytes = Uint8Array.from(atob(data.content.replace(/\n/g,'')), c=>c.charCodeAt(0));
+    const decoded = JSON.parse(new TextDecoder('utf-8').decode(bytes));
     articles = decoded.articles || [];
     categories = decoded.categories || categories;
     renderList();
