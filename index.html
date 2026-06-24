@@ -212,4 +212,11 @@ function cardHTML(a){
     '<div class="card-meta"><span class="card-cat">'+a.category+'</span><span class="card-date">'+fmtDate(a.date)+'</span></div>'+
     '<h2>'+a.title+'</h2><p>'+(a.summary||'')+'</p>'+
     (tags?'<div class="card-tags">'+tags+'</div>':'')+
-    '<div class="card-arrow">閱讀全文 →</div></d
+    '<div class="card-arrow">閱讀全文 →</div></div>';
+}
+function fmtDate(s){if(!s)return'';const d=new Date(s);return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');}
+function eid(s){return s.replace(/\s+/g,'_');}
+init();
+</script>
+</body>
+</html>
