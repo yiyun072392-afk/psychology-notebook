@@ -95,6 +95,7 @@
   <div class="hsave">
     <span class="save-status" id="save-status"></span>
     <button class="btn btn-ghost" onclick="deleteArticle()" id="btn-delete" style="display:none">刪除</button>
+    <button class="btn btn-ghost" onclick="saveDraft()" id="btn-draft" disabled style="border-color:var(--amber);color:var(--amber)">💾 儲存草稿</button>
     <button class="btn btn-primary" onclick="saveToGitHub()" id="btn-save" disabled>發布到 GitHub</button>
   </div>
 </header>
@@ -177,6 +178,7 @@ let categories = ['研究所考科','國考科目','其他心理學','讀書心�
 let currentId = null;
 let fileSha = null;
 let pat = '';
+let draftTimer = null;
 
 // ── INIT ──
 async function init() {
@@ -211,9 +213,31 @@ async function loadFromGitHub() {
     const decoded = JSON.parse(new TextDecoder('utf-8').decode(bytes));
     articles = decoded.articles || [];
     categories = decoded.categories || categories;
+
+    // Check for local draft newer than GitHub
+    const draft = getDraft();
+    if (draft) {
+      const draftDate = new Date(draft.savedAt);
+      const msg = `發現本地未發布草稿（${fmtDate(draft.savedAt)} 儲存），本否恢復？`;
+      if (confirm(msg)) {
+        articles = draft.articles || articles;
+        categories = draft.categories || categories;
+        currentId = draft.currentId || null;
+        renderList();
+        if (currentId) selectArticle(currentId);
+        setStatus('已恢復草稿 — 記得發布到 GitHub');
+        document.getElementById('btn-save').disabled = false;
+        document.getElementById('btn-draft').disabled = false;
+        return;
+      } else {
+        clearDraft();
+      }
+    }
+
     renderList();
     setStatus('已同步 GitHub');
     document.getElementById('btn-save').disabled = false;
+    document.getElementById('btn-draft').disabled = false;
   } catch(e) {
     setStatus('載入失敗：' + e.message);
     toast('無法連接 GitHub，請確認 PAT 是否正確');
@@ -237,8 +261,9 @@ async function saveToGitHub() {
     if (!res.ok) { const t = await res.text(); throw new Error(t); }
     const data = await res.json();
     fileSha = data.content.sha;
+    clearDraft();
     setStatus('✓ 已發布');
-    toast('文章已發布！');
+    toast('文章已發布！草稿已清除。');
     renderList();
   } catch(e) {
     setStatus('發布失敗');
@@ -338,20 +363,43 @@ function toast(msg) {
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3000);
 }
-function fmtDate(s){ if(!s)return''; const d=new Date(s); return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'); }
+function fmtDate(s){if(!s)return''; const d=new Date(s); return d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0'); }
 
-// Auto-save draft to localStorage on input
+// ── DRAFT (localStorage) ──
+function saveDraft() {
+  if (!currentId) { toast('請先選擇或新增一篇文章'); return; }
+  applyEditorToArticle();
+  const draft = { articles, categories, currentId, savedAt: new Date().toISOString() };
+  localStorage.setItem('psi_note_draft', JSON.stringify(draft));
+  setStatus('💾 草稿已儲存（未發布）');
+  toast('草稿已存到瀏覽器，下次開啟可恢復');
+}
+
+function getDraft() {
+  try { return JSON.parse(localStorage.getItem('psi_note_draft') || 'null'); } catch(e) { return null; }
+}
+
+function clearDraft() {
+  localStorage.removeItem('psi_note_draft');
+}
+
+function scheduleDraftSave() {
+  if (!currentId) return;
+  applyEditorToArticle();
+  setStatus('（未發布）');
+  if (draftTimer) clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    const draft = { articles, categories, currentId, savedAt: new Date().toISOString() };
+    localStorage.setItem('psi_note_draft', JSON.stringify(draft));
+    setStatus('💾 已自動存草稿');
+  }, 3000);
+}
+
+// Auto-save on input
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('editor').addEventListener('input', () => {
-    if (currentId) {
-      applyEditorToArticle();
-      setStatus('（未發布）');
-    }
-  });
+  document.getElementById('editor').addEventListener('input', scheduleDraftSave);
   ['f-title','f-summary','f-category','f-tags'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-      if (currentId) { applyEditorToArticle(); setStatus('（未發布）'); }
-    });
+    document.getElementById(id).addEventListener('input', scheduleDraftSave);
   });
 });
 
