@@ -461,7 +461,7 @@ function insertBlockMath() {
 
 function togglePreview() {
   const pane = document.getElementById('preview-pane');
-  const btn = document.getElem•ntById('btn-preview');
+  const btn = document.getElementById('btn-preview');
   const on = pane.classList.toggle('visible');
   btn.style.color = on ? 'var(--cyan)' : '';
   if (on) updatePreview();
