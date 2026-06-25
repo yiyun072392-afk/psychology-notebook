@@ -6,6 +6,9 @@
 <title>ψ-NOTE — 臨床心理學筆記</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
   :root{--bg:#080B0F;--surface:#0E141B;--surface2:#141C26;--border:#1E2D3D;--text:#C8D8E8;--muted:#5A7A9A;--cyan:#2FE6CC;--magenta:#FF3D7A;--amber:#FFB454;--blue:#4DA8FF;--font:'Noto Sans TC',sans-serif;--mono:'JetBrains Mono',monospace}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -176,6 +179,9 @@ function showArticle(id){
   document.getElementById('a-title').textContent=a.title;
   document.getElementById('a-body').innerHTML=a.content;
   document.getElementById('a-tags').innerHTML=(a.tags||[]).map(t=>'<span class="tag">'+t+'</span>').join('');
+  if(typeof renderMathInElement!=='undefined'){
+    renderMathInElement(document.getElementById('a-body'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  }
   window.scrollTo(0,0);
 }
 function buildSidebar(cats){
