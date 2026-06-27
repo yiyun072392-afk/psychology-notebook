@@ -87,6 +87,10 @@
   #editor table{width:100%;border-collapse:collapse;margin:12px 0}
   #editor th{background:var(--surface2);color:var(--cyan);padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-family:var(--mono);font-size:12px}
   #editor td{padding:8px 12px;border-bottom:1px solid var(--border)}
+  #editor .embed-wrap,.preview-pane .embed-wrap{margin:16px 0;border-radius:8px;overflow:hidden;background:#000;position:relative;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+  #editor .embed-wrap iframe,.preview-pane .embed-wrap iframe{width:100%;aspect-ratio:16/9;border:none;display:block}
+  #editor .embed-wrap[data-type="web"],.preview-pane .embed-wrap[data-type="web"]{aspect-ratio:unset}
+  #editor .embed-wrap[data-type="web"] iframe,.preview-pane .embed-wrap[data-type="web"] iframe{height:480px}
   /* SETUP PANEL */
   .setup{display:flex;align-items:center;justify-content:center;flex:1}
   .setup-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:36px;max-width:420px;width:100%}
@@ -182,6 +186,8 @@
       <button class="tb" onclick="insertInlineMath()" title="行內公式 $...$">∑</button>
       <button class="tb" onclick="insertBlockMath()" title="區塊公式 $$...$$">∑∑</button>
       <div class="tb-sep"></div>
+      <button class="tb" onclick="insertEmbed()" title="嵌入影片或網頁（YouTube / Bilibili / 其他）">🎬</button>
+      <div class="tb-sep"></div>
       <button class="tb" onclick="togglePreview()" id="btn-preview" title="切換即時預覽">👁</button>
     </div>
     <div class="editor-wrap">
@@ -244,7 +250,7 @@ async function loadFromGitHub() {
     const draft = getDraft();
     if (draft) {
       const draftDate = new Date(draft.savedAt);
-      const msg = `發現本地未發布草稿（${fmtDate(draft.savedAt)} 儲存），是否恢復？`;
+      const msg = `發現本地未發布草稿（${fmtDate(draft.savedAt)} 儲存），本否恢復？`;
       if (confirm(msg)) {
         articles = draft.articles || articles;
         categories = draft.categories || categories;
@@ -380,6 +386,37 @@ function insertTable() {
   document.getElementById('editor').focus();
   const html = '<table><thead><tr><th>欄位一</th><th>欄位二</th></tr></thead><tbody><tr><td>內容</td><td>內容</td></tr></tbody></table><p></p>';
   document.execCommand('insertHTML', false, html);
+}
+
+function insertEmbed() {
+  const url = prompt('貼上影片或網頁網址：\n\n支援：YouTube、Bilibili、或任意 https:// 網址');
+  if (!url) return;
+  let src = url.trim();
+  let type = 'video';
+
+  // YouTube: watch?v=ID or youtu.be/ID
+  const yt = src.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (yt) {
+    src = `https://www.youtube.com/embed/${yt[1]}?rel=0`;
+  } else {
+    // Bilibili: /video/BVxxx or /video/avxxx
+    const bili = src.match(/bilibili\.com\/video\/((?:BV|av)[A-Za-z0-9]+)/i);
+    if (bili) {
+      const id = bili[1];
+      src = id.toLowerCase().startsWith('av')
+        ? `https://player.bilibili.com/player.html?aid=${id.slice(2)}&high_quality=1&danmaku=0`
+        : `https://player.bilibili.com/player.html?bvid=${id}&high_quality=1&danmaku=0`;
+    } else {
+      // General URL — show as webpage preview
+      type = 'web';
+      if (!src.startsWith('http')) src = 'https://' + src;
+    }
+  }
+
+  document.getElementById('editor').focus();
+  const html = `<div class="embed-wrap" data-type="${type}"><iframe src="${src}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"></iframe></div><p></p>`;
+  document.execCommand('insertHTML', false, html);
+  schedulePreviewUpdate();
 }
 
 // ── UI HELPERS ──
