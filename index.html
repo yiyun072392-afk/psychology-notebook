@@ -84,6 +84,9 @@
   .article-body td{padding:9px 13px;border-bottom:1px solid var(--border);color:var(--text)}
   .article-body tr:last-child td{border-bottom:none}
   .article-body tr:hover td{background:var(--surface2)}
+  .article-body .embed-wrap{margin:20px 0;border-radius:10px;overflow:hidden;background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+  .article-body .embed-wrap iframe{width:100%;aspect-ratio:16/9;border:none;display:block}
+  .article-body .embed-wrap[data-type="web"] iframe{height:500px;aspect-ratio:unset}
   ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
   @media(max-width:700px){.layout{grid-template-columns:1fr}aside{display:none}main{padding:24px 16px}.hero h1{font-size:24px}}
 </style>
