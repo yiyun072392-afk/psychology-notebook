@@ -1,6 +1,19 @@
 {
   "articles": [
     {
+      "id": "art-1782580778179",
+      "title": "神經傳導物質整理",
+      "summary": "",
+      "content": "<!-- obsidian --><table>\n<thead>\n<tr>\n<th>作用</th>\n<th>中文名稱</th>\n<th>英文名稱</th>\n<th>功能</th>\n<th>缺失</th>\n<th>受體</th>\n<th>相關藥物</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>興奮</td>\n<td>麩胺酸</td>\n<td>Glutamate</td>\n<td>促進神經元傳遞訊息效率的興奮作用，大量釋放會導致偏頭痛或癲癇，甚至是突觸後細胞嗨倒掛。</td>\n<td>失調可能會導致焦慮症（過度）、思覺失調症（過度）、藥物上癮（過度）和憂鬱症（缺少）</td>\n<td>氮-甲基天門冬氨酸（N-methyl-D-aspartate）受體，影響學習與記憶。</td>\n<td>氯胺酮（Ketamin）：調節麩胺酸受體，治療難治型憂鬱症。</td>\n</tr>\n<tr>\n<td>興奮</td>\n<td>乙醯膽鹼</td>\n<td>acetylcholine</td>\n<td>神經投射至廣泛腦區。如海馬迴、杏仁核</td>\n<td>與記憶喪失和認知功能衰退的阿茲海默症有關。前腦的乙醯膽鹼神經元的退化程度與阿茲海默症的記憶喪失程度成正比。</td>\n<td></td>\n<td>乙醯膽鹼酯酶抑制劑（AChE inhibitors）：乙醯膽鹼酯酶會分解乙醯膽鹼。<br>為了增加突觸間的乙醯膽鹼，讓它可以作用久一點，所以要抑制會抑制乙醯膽鹼的乙醯膽鹼酯酶。</td>\n</tr>\n<tr>\n<td>興奮</td>\n<td>正腎上腺素</td>\n<td>norepinephrine</td>\n<td>投射到全腦，興奮、警覺、壓力和社會行為有關。</td>\n<td></td>\n<td></td>\n<td>安非他命藉由抑制正腎上腺素在回收，延長正腎上腺素作用時間，促進人達到興奮狀態；鋰鹽則促進突觸回收正腎上腺素，減少亢奮狀態，臨床上用以治療躁症（mania）</td>\n</tr>\n<tr>\n<td>興奮</td>\n<td>多巴胺</td>\n<td>dopamine</td>\n<td>自主運動、注意力、睡眠、動機和愉悅。<br><br>除了實際獎酬之外，患得患失的渴望的過程比實際得到結果，更能分泌大量多巴胺；如果實際得到的獎酬比預期中的多，也會大量分泌多巴胺。<br>多巴胺過量分泌與多巴胺受器過多，可能與思覺失調症有關。</td>\n<td>自主運動不協調的帕金森氏症。</td>\n<td></td>\n<td>施予釋放多巴胺的藥物能減緩帕金森氏症的症狀。</td>\n</tr>\n<tr>\n<td>興奮</td>\n<td>血清素</td>\n<td>serotonin</td>\n<td>影響情緒調節功能，也影響睡眠和食慾</td>\n<td>感到憂鬱</td>\n<td></td>\n<td>百憂解（Prozac）抑制血清素再回收，讓血清素作用久一點。<br>麥角二乙氨酸（lysergic acid diethylamine, LSD）作用於血清素受體的迷幻藥。</td>\n</tr>\n<tr>\n<td>抑制</td>\n<td>伽瑪氨基丁酸</td>\n<td>Gamma-aminobutyric acid, GABA</td>\n<td></td>\n<td></td>\n<td></td>\n<td>苯二氮平類藥物（Benzodiazepines, BZD）增強 GABA 受體，達到鎮靜、減緩焦慮和安眠效果。</td>\n</tr>\n<tr>\n<td>抑制</td>\n<td>腦內啡</td>\n<td>endorphins</td>\n<td>劇烈疼痛或是驚嚇時，藉由結合愉悅或疼痛的受器，產生鎮痛和愉悅的效果。<br>抑制神經系統活動。</td>\n<td></td>\n<td></td>\n<td>針灸的止痛效果與刺激腦內啡分泌有關，然而，如果服用阻斷腦內啡分泌的鈉洛酮（naloxone）會使針灸的止痛效果失靈。</td>\n</tr>\n<tr>\n<td></td>\n<td>催產激素</td>\n<td>oxytocin</td>\n<td>兼具神經傳導物質與激素。<br>社會功能、情感運作、分泌乳汁、雙親情感連結新生兒、成人情感依附、透過與人連結來釋放壓力</td>\n<td></td>\n<td></td>\n<td></td>\n</tr>\n</tbody></table>",
+      "category": "研究所考科",
+      "tags": [
+        "神經傳導物質",
+        "精神疾病",
+        "藥物治療"
+      ],
+      "date": "2026-06-27"
+    },
+    {
       "id": "art-1782571491614",
       "title": "大腦神經元如何傳遞與整合訊號",
       "summary": "從鈣離子觸發、神經傳導物質釋放，到神經元整合成千上萬條訊息才決定是否放電——用日常情境拆解突觸傳遞的完整流程。",
