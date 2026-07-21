@@ -31,6 +31,13 @@
   .chip{border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;transition:all .15s;user-select:none}
   .chip.active{border-color:var(--cyan);color:var(--cyan);background:rgba(47,230,204,.1)}
   .chip:hover{color:var(--text)}
+  /* subject chips: explicit two-state styling driven by JS (not per-subject inline color)
+     so the selected/unselected contrast is always strong regardless of subject color */
+  .subj-chip{border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;transition:all .15s;user-select:none;font-weight:500}
+  .subj-chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--muted);vertical-align:middle}
+  .subj-chip.on{border-width:2px;font-weight:700;color:#04211c;background:var(--chip-c,var(--cyan));border-color:var(--chip-c,var(--cyan))}
+  .subj-chip.on .dot{background:#04211c}
+  .subj-chip:not(.on):hover{color:var(--text);border-color:var(--muted)}
   .range-row{display:flex;align-items:center;gap:12px}
   .range-row select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:6px}
   .count-hint{font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono)}
@@ -39,7 +46,9 @@
   .btn:disabled{opacity:.4;cursor:not-allowed}
   .btn.secondary{background:none;border:1px solid var(--border);color:var(--text)}
   .btn.secondary:hover{border-color:var(--cyan);color:var(--cyan)}
-  .btn-row{display:flex;gap:10px;margin-top:8px}
+  .btn.ghost{background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:8px 16px}
+  .btn.ghost:hover{border-color:var(--amber);color:var(--amber)}
+  .btn-row{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
   /* quiz */
   .q-progress{display:flex;align-items:center;gap:14px;margin-bottom:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
   .q-progress-bar{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
@@ -60,6 +69,9 @@
   .feedback{font-size:13px;font-family:var(--mono);margin:14px 0;padding:10px 14px;border-radius:6px}
   .feedback.ok{color:var(--green);background:rgba(62,213,152,.08)}
   .feedback.bad{color:var(--red);background:rgba(255,92,92,.08)}
+  .uncertain-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);color:var(--muted);font-size:13px;padding:10px 18px;border-radius:8px;cursor:pointer;transition:all .15s}
+  .uncertain-btn:hover{border-color:var(--amber);color:var(--amber)}
+  .uncertain-btn.flagged{border-color:var(--amber);color:var(--amber);background:rgba(255,180,84,.1)}
   /* results */
   .score-hero{text-align:center;padding:30px 0 10px}
   .score-num{font-size:56px;font-weight:900;font-family:var(--mono);color:var(--cyan)}
@@ -75,6 +87,12 @@
   .review-opt{font-size:13px;padding:6px 10px;border-radius:5px;margin-bottom:4px;color:var(--muted)}
   .review-opt.correct-ans{color:var(--green);background:rgba(62,213,152,.08)}
   .review-opt.chosen-wrong{color:var(--red);background:rgba(255,92,92,.08);text-decoration:line-through}
+  .flag-badge{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:3px;margin-right:6px}
+  .flag-badge.wrong{color:var(--red);background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3)}
+  .flag-badge.uncertain{color:var(--amber);background:rgba(255,180,84,.1);border:1px solid rgba(255,180,84,.3)}
+  .notebook-item{border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;background:var(--surface2)}
+  .notebook-item-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .notebook-item-head .q-tag{margin:0}
   .empty{text-align:center;padding:60px 20px;color:var(--muted)}
   .empty-icon{font-size:36px;margin-bottom:12px;opacity:.5}
   ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -85,7 +103,7 @@
 <header>
   <div class="brand" onclick="location.href='index.html'">
     <span class="brand-mark">ψ</span>
-    <div class="brand-text">臨床心理學筆記<span>PSI-NOTE</span></div>
+    <div class="brand-text">諮商心理學筆記<span>PSI-NOTE</span></div>
   </div>
   <nav class="top-nav">
     <a onclick="location.href='index.html'">首頁</a>
@@ -99,11 +117,11 @@
   <div class="page" id="page-setup">
     <div class="hero-eyebrow">諮商心理師 · 高考考古題</div>
     <h1>刷題區</h1>
-    <p class="sub">取材自考選部 100–114 年諮商心理師專技高考測驗題，作答後立即對答案，並累積統計你的科目弱點。</p>
+    <p class="sub">取材自考選部 102–114 年諮商心理師專技高考測驗題（現行考科制度），作答後立即對答案，並累積統計你的科目弱點。</p>
 
     <div class="card">
       <div class="block">
-        <div class="block-label">科目（可複選）</div>
+        <div class="block-label">科目（可複選，點擊切換）</div>
         <div class="chip-row" id="subjectChips"></div>
       </div>
       <div class="block">
@@ -118,7 +136,7 @@
         <div class="block-label">出題模式</div>
         <div class="chip-row">
           <div class="chip active" data-mode="all" onclick="setMode('all')">全部題目</div>
-          <div class="chip" data-mode="wrong" onclick="setMode('wrong')">只練錯題本 <span id="wrongCount" style="font-family:var(--mono);opacity:.7"></span></div>
+          <div class="chip" data-mode="review" onclick="setMode('review')">只練複習清單 <span id="reviewCountTag" style="font-family:var(--mono);opacity:.7"></span></div>
         </div>
       </div>
       <div class="block">
@@ -133,7 +151,8 @@
       </div>
       <div class="btn-row">
         <button class="btn" id="startBtn" onclick="startQuiz()">開始刷題 →</button>
-        <button class="btn secondary" onclick="go('weak')">📊 查看弱點分析</button>
+        <button class="btn secondary" onclick="go('weak')">📊 弱點分析</button>
+        <button class="btn secondary" onclick="go('review')">📝 複習清單 <span id="reviewCountTag2"></span></button>
       </div>
     </div>
   </div>
@@ -153,6 +172,7 @@
       <div id="qOptions"></div>
       <div class="feedback" id="qFeedback" style="display:none"></div>
       <div class="btn-row">
+        <button class="uncertain-btn" id="uncertainBtn" style="display:none" onclick="markUncertain()">🤔 不確定，加入複習清單</button>
         <button class="btn" id="nextBtn" style="display:none" onclick="nextQuestion()">下一題 →</button>
       </div>
     </div>
@@ -173,6 +193,7 @@
       <div class="btn-row">
         <button class="btn" onclick="go('setup')">再刷一輪</button>
         <button class="btn secondary" onclick="go('weak')">查看整體弱點分析</button>
+        <button class="btn secondary" onclick="go('review')">📝 複習清單</button>
       </div>
     </div>
     <div class="block" style="margin-top:30px">
@@ -188,29 +209,44 @@
     <div class="card" id="weakContent"></div>
     <div class="btn-row" style="margin-top:20px">
       <button class="btn secondary" onclick="go('setup')">← 返回刷題設定</button>
-      <button class="btn secondary" onclick="resetStats()" style="color:var(--red);border-color:rgba(255,92,92,.3)">清除所有紀錄</button>
+      <button class="btn ghost" onclick="resetStats()">清除所有紀錄</button>
     </div>
+  </div>
+
+  <div class="page" id="page-notebook">
+    <div class="hero-eyebrow">答錯 + 標記不確定</div>
+    <h1>複習清單</h1>
+    <p class="sub">答錯或被你標記「不確定」的題目會自動收錄在這裡，複習完可以移除，也可以直接批次重新作答。</p>
+    <div class="btn-row" style="margin-bottom:24px">
+      <button class="btn" id="practiceNotebookBtn" onclick="practiceNotebook()">▶ 開始複習這些題目</button>
+      <button class="btn secondary" onclick="go('setup')">← 返回刷題設定</button>
+      <button class="btn ghost" onclick="clearNotebook()">清空清單</button>
+    </div>
+    <div id="notebookContent"></div>
   </div>
 
 </main>
 <script>
 const SUBJECT_COLORS={'諮商的心理學基礎':'#2FE6CC','諮商與心理治療理論':'#FF3D7A','諮商與心理治療實務與專業倫理':'#FFB454','團體諮商與心理治療':'#4DA8FF','個案評估與心理衡鑑':'#3ED598','心理健康與變態心理學':'#B98EFF'};
 const STATS_KEY='psiNoteQuizStats_v1';
-const WRONG_KEY='psiNoteQuizWrong_v1';
+const REVIEW_KEY='psiNoteQuizReview_v2';
 
 let allQuestions=[];
 let subjects=[];
 let selectedSubjects=new Set();
 let mode='all';
 let questionCount=10;
-let years=[100,114];
 
 let session=null; // {questions:[...], index, correct, answers:[]}
 
 function loadStats(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{}}catch(e){return {}}}
 function saveStats(s){localStorage.setItem(STATS_KEY,JSON.stringify(s))}
-function loadWrong(){try{return JSON.parse(localStorage.getItem(WRONG_KEY))||[]}catch(e){return []}}
-function saveWrong(arr){localStorage.setItem(WRONG_KEY,JSON.stringify(arr))}
+function loadReview(){try{return JSON.parse(localStorage.getItem(REVIEW_KEY))||{}}catch(e){return {}}}
+function saveReview(o){localStorage.setItem(REVIEW_KEY,JSON.stringify(o))}
+function reviewEntries(){
+  const r=loadReview();
+  return Object.values(r).filter(e=>e.wrong||e.uncertain);
+}
 
 async function init(){
   try{
@@ -221,7 +257,7 @@ async function init(){
   selectedSubjects=new Set(subjects);
   renderSubjectChips();
   renderYearSelects();
-  updateWrongCount();
+  updateReviewCount();
   updateCountHint();
   go('setup');
 }
@@ -229,13 +265,14 @@ async function init(){
 function renderSubjectChips(){
   document.getElementById('subjectChips').innerHTML=subjects.map(s=>{
     const c=SUBJECT_COLORS[s]||'#5A7A9A';
-    return `<div class="chip active" data-subj="${esc(s)}" style="border-color:${c}55;color:${c}" onclick="toggleSubject('${esc(s)}')">${esc(s)}</div>`;
+    const on=selectedSubjects.has(s);
+    return `<div class="subj-chip${on?' on':''}" data-subj="${esc(s)}" style="--chip-c:${c}" onclick="toggleSubject('${esc(s)}')"><span class="dot"></span>${esc(s)}</div>`;
   }).join('');
 }
 function toggleSubject(s){
   if(selectedSubjects.has(s))selectedSubjects.delete(s);else selectedSubjects.add(s);
-  document.querySelectorAll('#subjectChips .chip').forEach(c=>{
-    if(c.dataset.subj===s)c.classList.toggle('active',selectedSubjects.has(s));
+  document.querySelectorAll('#subjectChips .subj-chip').forEach(c=>{
+    if(c.dataset.subj===s)c.classList.toggle('on',selectedSubjects.has(s));
   });
   updateCountHint();
 }
@@ -257,15 +294,17 @@ function setCount(n){
   document.querySelectorAll('[data-n]').forEach(c=>c.classList.toggle('active',Number(c.dataset.n)===n));
   updateCountHint();
 }
-function updateWrongCount(){
-  document.getElementById('wrongCount').textContent='('+loadWrong().length+')';
+function updateReviewCount(){
+  const n=reviewEntries().length;
+  document.getElementById('reviewCountTag').textContent='('+n+')';
+  document.getElementById('reviewCountTag2').textContent='('+n+')';
 }
 function getPool(){
   const yf=Number(document.getElementById('yearFrom').value),yt=Number(document.getElementById('yearTo').value);
   let pool=allQuestions.filter(q=>selectedSubjects.has(q.subject)&&q.year>=yf&&q.year<=yt);
-  if(mode==='wrong'){
-    const wrongIds=new Set(loadWrong());
-    pool=pool.filter(q=>wrongIds.has(q.id));
+  if(mode==='review'){
+    const ids=new Set(reviewEntries().map(e=>e.id));
+    pool=pool.filter(q=>ids.has(q.id));
   }
   return pool;
 }
@@ -290,6 +329,15 @@ function startQuiz(){
   renderQuestion();
 }
 
+function practiceNotebook(){
+  const ids=new Set(reviewEntries().map(e=>e.id));
+  let pool=shuffle(allQuestions.filter(q=>ids.has(q.id)));
+  if(pool.length===0)return;
+  session={questions:pool,index:0,correct:0,answers:[]};
+  go('quiz');
+  renderQuestion();
+}
+
 function renderQuestion(){
   const q=session.questions[session.index];
   document.getElementById('qCounter').textContent=(session.index+1)+' / '+session.questions.length;
@@ -307,6 +355,10 @@ function renderQuestion(){
   ).join('');
   document.getElementById('qFeedback').style.display='none';
   document.getElementById('nextBtn').style.display='none';
+  const ub=document.getElementById('uncertainBtn');
+  ub.style.display='none';
+  ub.classList.remove('flagged');
+  ub.textContent='🤔 不確定，加入複習清單';
 }
 
 function answer(letter){
@@ -327,14 +379,35 @@ function answer(letter){
   fb.textContent=correct?'✓ 答對了！正確答案：'+q.answer:'✗ 答錯了，正確答案：'+q.answer+'（你選了 '+letter+'）';
   document.getElementById('nextBtn').style.display='inline-flex';
   document.getElementById('nextBtn').textContent=(session.index+1<session.questions.length)?'下一題 →':'查看結果 →';
-  session.answers.push({id:q.id,subject:q.subject,year:q.year,stem:q.stem,options:q.options,answer:q.answer,chosen:letter,correct});
+  document.getElementById('uncertainBtn').style.display='inline-flex';
+  session.answers.push({id:q.id,subject:q.subject,year:q.year,qsession:q.session,stem:q.stem,options:q.options,answer:q.answer,chosen:letter,correct});
   document.getElementById('qScoreLive').textContent=session.correct+' 對';
 
-  // update wrong-question notebook
-  let wrong=loadWrong();
-  if(correct){wrong=wrong.filter(id=>id!==q.id);}
-  else{if(!wrong.includes(q.id))wrong.push(q.id);}
-  saveWrong(wrong);
+  // update review notebook: auto add/clear the "wrong" flag based on this attempt
+  const rv=loadReview();
+  const existing=rv[q.id]||{};
+  if(!correct||existing.uncertain){
+    rv[q.id]={id:q.id,subject:q.subject,year:q.year,session:q.session,stem:q.stem,options:q.options,answer:q.answer,
+      wrong:!correct,uncertain:!!existing.uncertain};
+  }else if(existing.id){
+    rv[q.id]={...existing,wrong:false};
+  }
+  saveReview(rv);
+  updateReviewCount();
+}
+
+function markUncertain(){
+  const q=session.questions[session.index];
+  if(!q._answered)return;
+  const rv=loadReview();
+  const existing=rv[q.id]||{wrong:false};
+  rv[q.id]={id:q.id,subject:q.subject,year:q.year,session:q.session,stem:q.stem,options:q.options,answer:q.answer,
+    wrong:existing.wrong,uncertain:true};
+  saveReview(rv);
+  updateReviewCount();
+  const ub=document.getElementById('uncertainBtn');
+  ub.classList.add('flagged');
+  ub.textContent='🤔 已加入複習清單';
 }
 
 function nextQuestion(){
@@ -344,7 +417,6 @@ function nextQuestion(){
 }
 
 function finishQuiz(){
-  // merge into cumulative stats
   const stats=loadStats();
   session.answers.forEach(a=>{
     if(!stats[a.subject])stats[a.subject]={correct:0,total:0};
@@ -352,7 +424,7 @@ function finishQuiz(){
     if(a.correct)stats[a.subject].correct++;
   });
   saveStats(stats);
-  updateWrongCount();
+  updateReviewCount();
   go('results');
   renderResults();
 }
@@ -368,10 +440,15 @@ function renderResults(){
     if(a.correct)bySubj[a.subject].correct++;
   });
   document.getElementById('resultSubjectBars').innerHTML=Object.entries(bySubj).map(([s,v])=>subjectBarHTML(s,v)).join('');
+  const rv=loadReview();
   document.getElementById('reviewList').innerHTML=session.answers.map((a,i)=>{
     const letters=['A','B','C','D'];
+    const flags=rv[a.id]||{};
+    let badges='';
+    if(!a.correct)badges+='<span class="flag-badge wrong">✗ 答錯</span>';
+    if(flags.uncertain)badges+='<span class="flag-badge uncertain">🤔 不確定</span>';
     return `<div class="review-item">
-      <div class="review-q">${i+1}. [${esc(a.subject)} · ${a.year}年] ${esc(a.stem)}</div>
+      <div class="review-q">${badges}${i+1}. [${esc(a.subject)} · ${a.year}年] ${esc(a.stem)}</div>
       ${letters.map((l,idx)=>{
         let cls='review-opt';
         if(l===a.answer)cls+=' correct-ans';
@@ -411,18 +488,65 @@ function renderWeak(){
   }).join('');
 }
 
+function renderNotebook(){
+  const entries=reviewEntries().sort((a,b)=>a.subject.localeCompare(b.subject));
+  const box=document.getElementById('notebookContent');
+  document.getElementById('practiceNotebookBtn').disabled=entries.length===0;
+  if(entries.length===0){
+    box.innerHTML=`<div class="empty"><div class="empty-icon">📝</div><h3 style="color:var(--text);margin-bottom:6px">複習清單是空的</h3><p>刷題時答錯的題目，或按下「不確定」的題目，都會自動收錄在這裡</p></div>`;
+    return;
+  }
+  const letters=['A','B','C','D'];
+  box.innerHTML=entries.map(e=>{
+    let badges='';
+    if(e.wrong)badges+='<span class="flag-badge wrong">✗ 答錯</span>';
+    if(e.uncertain)badges+='<span class="flag-badge uncertain">🤔 不確定</span>';
+    return `<div class="notebook-item">
+      <div class="notebook-item-head">
+        <span class="q-tag">${esc(e.subject)}</span>
+        <span class="q-tag">${e.year}年${esc(e.session||'')}</span>
+        ${badges}
+      </div>
+      <div class="review-q">${esc(e.stem)}</div>
+      ${letters.map((l,idx)=>{
+        const cls='review-opt'+(l===e.answer?' correct-ans':'');
+        return `<div class="${cls}">${l}. ${esc(e.options[idx])}</div>`;
+      }).join('')}
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn ghost" onclick="removeFromNotebook('${esc(e.id)}')">✓ 已複習，移除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function removeFromNotebook(id){
+  const rv=loadReview();
+  delete rv[id];
+  saveReview(rv);
+  updateReviewCount();
+  renderNotebook();
+}
+function clearNotebook(){
+  if(!confirm('確定要清空整個複習清單嗎？'))return;
+  saveReview({});
+  updateReviewCount();
+  renderNotebook();
+}
+
 function resetStats(){
-  if(!confirm('確定要清除所有刷題統計與錯題本紀錄嗎？此動作無法復原。'))return;
+  if(!confirm('確定要清除所有刷題統計與複習清單紀錄嗎？此動作無法復原。'))return;
   localStorage.removeItem(STATS_KEY);
-  localStorage.removeItem(WRONG_KEY);
-  updateWrongCount();
+  localStorage.removeItem(REVIEW_KEY);
+  updateReviewCount();
   renderWeak();
 }
 
 function go(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('visible'));
-  document.getElementById('page-'+page).classList.add('visible');
+  const el=document.getElementById(page==='review'?'page-notebook':'page-'+page);
+  el.classList.add('visible');
   if(page==='weak')renderWeak();
+  if(page==='review')renderNotebook();
   if(page==='setup')updateCountHint();
   window.scrollTo(0,0);
 }
