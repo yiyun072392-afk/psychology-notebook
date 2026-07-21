@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刷題區 — ψ-NOTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#080B0F;--surface:#0E141B;--surface2:#141C26;--border:#1E2D3D;--text:#C8D8E8;--muted:#5A7A9A;--cyan:#2FE6CC;--magenta:#FF3D7A;--amber:#FFB454;--blue:#4DA8FF;--green:#3ED598;--red:#FF5C5C;--font:'Noto Sans TC',sans-serif;--mono:'JetBrains Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;line-height:1.7}
+  a{color:var(--cyan);text-decoration:none}
+  header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,11,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;gap:20px;padding:0 24px}
+  .brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+  .brand-mark{font-size:24px;font-weight:900;color:var(--cyan);font-family:var(--mono);text-shadow:0 0 20px var(--cyan)}
+  .brand-text{font-size:14px;font-weight:700;color:var(--text)}
+  .brand-text span{display:block;font-size:10px;color:var(--muted);letter-spacing:3px;font-family:var(--mono)}
+  .top-nav{display:flex;gap:4px;margin-left:auto}
+  .top-nav a{color:var(--muted);font-size:13px;padding:6px 12px;border-radius:5px;transition:all .2s;cursor:pointer}
+  .top-nav a:hover,.top-nav a.active{color:var(--cyan);background:rgba(47,230,204,0.08)}
+  main{max-width:760px;margin:0 auto;padding:96px 24px 60px}
+  .page{display:none}.page.visible{display:block}
+  .hero-eyebrow{font-size:11px;letter-spacing:4px;font-family:var(--mono);color:var(--cyan);margin-bottom:12px}
+  h1{font-size:28px;font-weight:900;color:white;line-height:1.3;margin-bottom:8px}
+  .sub{color:var(--muted);margin-bottom:32px;font-size:14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px}
+  .block{margin-bottom:26px}
+  .block-label{font-size:11px;letter-spacing:2px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;transition:all .15s;user-select:none}
+  .chip.active{border-color:var(--cyan);color:var(--cyan);background:rgba(47,230,204,.1)}
+  .chip:hover{color:var(--text)}
+  .range-row{display:flex;align-items:center;gap:12px}
+  .range-row select{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:6px}
+  .count-hint{font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono)}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:#04211c;font-weight:700;font-size:14px;border:none;padding:12px 26px;border-radius:8px;cursor:pointer;transition:all .15s}
+  .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.secondary{background:none;border:1px solid var(--border);color:var(--text)}
+  .btn.secondary:hover{border-color:var(--cyan);color:var(--cyan)}
+  .btn-row{display:flex;gap:10px;margin-top:8px}
+  /* quiz */
+  .q-progress{display:flex;align-items:center;gap:14px;margin-bottom:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .q-progress-bar{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+  .q-progress-fill{height:100%;background:var(--cyan);transition:width .25s}
+  .q-meta{display:flex;gap:8px;margin-bottom:14px}
+  .q-tag{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:3px;background:rgba(47,230,204,.08);border:1px solid rgba(47,230,204,.2);color:var(--cyan)}
+  .q-stem{font-size:17px;color:white;margin-bottom:22px;line-height:1.75;white-space:pre-wrap}
+  .opt{display:flex;gap:12px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s}
+  .opt:hover{border-color:var(--cyan)}
+  .opt-letter{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .opt-text{font-size:14px;color:var(--text);line-height:1.6}
+  .opt.correct{border-color:var(--green);background:rgba(62,213,152,.08)}
+  .opt.correct .opt-letter{border-color:var(--green);color:var(--green);background:rgba(62,213,152,.15)}
+  .opt.wrong{border-color:var(--red);background:rgba(255,92,92,.08)}
+  .opt.wrong .opt-letter{border-color:var(--red);color:var(--red);background:rgba(255,92,92,.15)}
+  .opt.disabled{cursor:default}
+  .opt.disabled:not(.correct):not(.wrong):hover{border-color:var(--border)}
+  .feedback{font-size:13px;font-family:var(--mono);margin:14px 0;padding:10px 14px;border-radius:6px}
+  .feedback.ok{color:var(--green);background:rgba(62,213,152,.08)}
+  .feedback.bad{color:var(--red);background:rgba(255,92,92,.08)}
+  /* results */
+  .score-hero{text-align:center;padding:30px 0 10px}
+  .score-num{font-size:56px;font-weight:900;font-family:var(--mono);color:var(--cyan)}
+  .score-label{color:var(--muted);font-size:13px;margin-top:6px}
+  .subject-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;font-size:13px}
+  .subject-bar-name{width:150px;flex-shrink:0;color:var(--text)}
+  .subject-bar-track{flex:1;height:10px;background:var(--surface2);border-radius:5px;overflow:hidden}
+  .subject-bar-fill{height:100%;border-radius:5px}
+  .subject-bar-pct{width:48px;text-align:right;font-family:var(--mono);color:var(--muted);flex-shrink:0}
+  .review-item{border-top:1px solid var(--border);padding:16px 0}
+  .review-item:first-child{border-top:none}
+  .review-q{font-size:14px;color:white;margin-bottom:10px;white-space:pre-wrap}
+  .review-opt{font-size:13px;padding:6px 10px;border-radius:5px;margin-bottom:4px;color:var(--muted)}
+  .review-opt.correct-ans{color:var(--green);background:rgba(62,213,152,.08)}
+  .review-opt.chosen-wrong{color:var(--red);background:rgba(255,92,92,.08);text-decoration:line-through}
+  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty-icon{font-size:36px;margin-bottom:12px;opacity:.5}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  @media(max-width:600px){main{padding:88px 14px 40px}.subject-bar-name{width:100px;font-size:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" onclick="location.href='index.html'">
+    <span class="brand-mark">ψ</span>
+    <div class="brand-text">臨床心理學筆記<span>PSI-NOTE</span></div>
+  </div>
+  <nav class="top-nav">
+    <a onclick="location.href='index.html'">首頁</a>
+    <a onclick="location.href='index.html#list'">所有筆記</a>
+    <a onclick="go('setup')" class="active">🎯 刷題區</a>
+    <a href="concepts.html" style="color:var(--amber);border:1px solid rgba(255,180,84,.25);border-radius:5px">⚡ 概念庫</a>
+  </nav>
+</header>
+<main>
+
+  <div class="page" id="page-setup">
+    <div class="hero-eyebrow">諮商心理師 · 高考考古題</div>
+    <h1>刷題區</h1>
+    <p class="sub">取材自考選部 100–114 年諮商心理師專技高考測驗題，作答後立即對答案，並累積統計你的科目弱點。</p>
+
+    <div class="card">
+      <div class="block">
+        <div class="block-label">科目（可複選）</div>
+        <div class="chip-row" id="subjectChips"></div>
+      </div>
+      <div class="block">
+        <div class="block-label">年度範圍</div>
+        <div class="range-row">
+          <select id="yearFrom"></select>
+          <span style="color:var(--muted)">～</span>
+          <select id="yearTo"></select>
+        </div>
+      </div>
+      <div class="block">
+        <div class="block-label">出題模式</div>
+        <div class="chip-row">
+          <div class="chip active" data-mode="all" onclick="setMode('all')">全部題目</div>
+          <div class="chip" data-mode="wrong" onclick="setMode('wrong')">只練錯題本 <span id="wrongCount" style="font-family:var(--mono);opacity:.7"></span></div>
+        </div>
+      </div>
+      <div class="block">
+        <div class="block-label">題數</div>
+        <div class="chip-row">
+          <div class="chip active" data-n="10" onclick="setCount(10)">10 題</div>
+          <div class="chip" data-n="20" onclick="setCount(20)">20 題</div>
+          <div class="chip" data-n="40" onclick="setCount(40)">40 題</div>
+          <div class="chip" data-n="0" onclick="setCount(0)">全部符合條件</div>
+        </div>
+        <div class="count-hint" id="countHint"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="startBtn" onclick="startQuiz()">開始刷題 →</button>
+        <button class="btn secondary" onclick="go('weak')">📊 查看弱點分析</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-quiz">
+    <div class="q-progress">
+      <span id="qCounter">1 / 10</span>
+      <div class="q-progress-bar"><div class="q-progress-fill" id="qProgressFill" style="width:0%"></div></div>
+      <span id="qScoreLive">0 對</span>
+    </div>
+    <div class="card">
+      <div class="q-meta">
+        <span class="q-tag" id="qSubjectTag"></span>
+        <span class="q-tag" id="qYearTag"></span>
+      </div>
+      <div class="q-stem" id="qStem"></div>
+      <div id="qOptions"></div>
+      <div class="feedback" id="qFeedback" style="display:none"></div>
+      <div class="btn-row">
+        <button class="btn" id="nextBtn" style="display:none" onclick="nextQuestion()">下一題 →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-results">
+    <div class="hero-eyebrow">作答結果</div>
+    <h1>對答案</h1>
+    <div class="card">
+      <div class="score-hero">
+        <div class="score-num" id="resultScore">0 / 0</div>
+        <div class="score-label" id="resultPct">正確率 0%</div>
+      </div>
+      <div class="block" style="margin-top:20px">
+        <div class="block-label">本次科目表現</div>
+        <div id="resultSubjectBars"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="go('setup')">再刷一輪</button>
+        <button class="btn secondary" onclick="go('weak')">查看整體弱點分析</button>
+      </div>
+    </div>
+    <div class="block" style="margin-top:30px">
+      <div class="block-label">逐題檢討</div>
+      <div class="card" id="reviewList"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-weak">
+    <div class="hero-eyebrow">累積統計</div>
+    <h1>弱點分析</h1>
+    <p class="sub">依歷次刷題紀錄，統計各科目的累積正確率（由弱到強排序），幫你抓出最需要加強的考科。</p>
+    <div class="card" id="weakContent"></div>
+    <div class="btn-row" style="margin-top:20px">
+      <button class="btn secondary" onclick="go('setup')">← 返回刷題設定</button>
+      <button class="btn secondary" onclick="resetStats()" style="color:var(--red);border-color:rgba(255,92,92,.3)">清除所有紀錄</button>
+    </div>
+  </div>
+
+</main>
+<script>
+const SUBJECT_COLORS={'諮商的心理學基礎':'#2FE6CC','諮商與心理治療理論':'#FF3D7A','諮商與心理治療實務與專業倫理':'#FFB454','團體諮商與心理治療':'#4DA8FF','個案評估與心理衡鑑':'#3ED598','心理健康與變態心理學':'#B98EFF'};
+const STATS_KEY='psiNoteQuizStats_v1';
+const WRONG_KEY='psiNoteQuizWrong_v1';
+
+let allQuestions=[];
+let subjects=[];
+let selectedSubjects=new Set();
+let mode='all';
+let questionCount=10;
+let years=[100,114];
+
+let session=null; // {questions:[...], index, correct, answers:[]}
+
+function loadStats(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{}}catch(e){return {}}}
+function saveStats(s){localStorage.setItem(STATS_KEY,JSON.stringify(s))}
+function loadWrong(){try{return JSON.parse(localStorage.getItem(WRONG_KEY))||[]}catch(e){return []}}
+function saveWrong(arr){localStorage.setItem(WRONG_KEY,JSON.stringify(arr))}
+
+async function init(){
+  try{
+    const d=await fetch('quiz-data.json').then(r=>r.json());
+    allQuestions=d.questions||[];
+  }catch(e){allQuestions=[];}
+  subjects=[...new Set(allQuestions.map(q=>q.subject))];
+  selectedSubjects=new Set(subjects);
+  renderSubjectChips();
+  renderYearSelects();
+  updateWrongCount();
+  updateCountHint();
+  go('setup');
+}
+
+function renderSubjectChips(){
+  document.getElementById('subjectChips').innerHTML=subjects.map(s=>{
+    const c=SUBJECT_COLORS[s]||'#5A7A9A';
+    return `<div class="chip active" data-subj="${esc(s)}" style="border-color:${c}55;color:${c}" onclick="toggleSubject('${esc(s)}')">${esc(s)}</div>`;
+  }).join('');
+}
+function toggleSubject(s){
+  if(selectedSubjects.has(s))selectedSubjects.delete(s);else selectedSubjects.add(s);
+  document.querySelectorAll('#subjectChips .chip').forEach(c=>{
+    if(c.dataset.subj===s)c.classList.toggle('active',selectedSubjects.has(s));
+  });
+  updateCountHint();
+}
+function renderYearSelects(){
+  const yrs=[...new Set(allQuestions.map(q=>q.year))].sort((a,b)=>a-b);
+  const from=document.getElementById('yearFrom'),to=document.getElementById('yearTo');
+  from.innerHTML=yrs.map(y=>`<option value="${y}">${y}年</option>`).join('');
+  to.innerHTML=yrs.map(y=>`<option value="${y}">${y}年</option>`).join('');
+  from.value=yrs[0];to.value=yrs[yrs.length-1];
+  from.onchange=updateCountHint;to.onchange=updateCountHint;
+}
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('[data-mode]').forEach(c=>c.classList.toggle('active',c.dataset.mode===m));
+  updateCountHint();
+}
+function setCount(n){
+  questionCount=n;
+  document.querySelectorAll('[data-n]').forEach(c=>c.classList.toggle('active',Number(c.dataset.n)===n));
+  updateCountHint();
+}
+function updateWrongCount(){
+  document.getElementById('wrongCount').textContent='('+loadWrong().length+')';
+}
+function getPool(){
+  const yf=Number(document.getElementById('yearFrom').value),yt=Number(document.getElementById('yearTo').value);
+  let pool=allQuestions.filter(q=>selectedSubjects.has(q.subject)&&q.year>=yf&&q.year<=yt);
+  if(mode==='wrong'){
+    const wrongIds=new Set(loadWrong());
+    pool=pool.filter(q=>wrongIds.has(q.id));
+  }
+  return pool;
+}
+function updateCountHint(){
+  const pool=getPool();
+  document.getElementById('countHint').textContent=`符合條件題目共 ${pool.length} 題`;
+  document.getElementById('startBtn').disabled=pool.length===0;
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function startQuiz(){
+  let pool=shuffle(getPool());
+  if(questionCount>0)pool=pool.slice(0,questionCount);
+  if(pool.length===0)return;
+  session={questions:pool,index:0,correct:0,answers:[]};
+  go('quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q=session.questions[session.index];
+  document.getElementById('qCounter').textContent=(session.index+1)+' / '+session.questions.length;
+  document.getElementById('qProgressFill').style.width=(session.index/session.questions.length*100)+'%';
+  document.getElementById('qScoreLive').textContent=session.correct+' 對';
+  document.getElementById('qSubjectTag').textContent=q.subject;
+  document.getElementById('qYearTag').textContent=q.year+'年'+(q.session||'');
+  document.getElementById('qStem').textContent=q.stem;
+  const letters=['A','B','C','D'];
+  document.getElementById('qOptions').innerHTML=letters.map((l,i)=>
+    `<div class="opt" data-letter="${l}" onclick="answer('${l}')">
+      <div class="opt-letter">${l}</div>
+      <div class="opt-text">${esc(q.options[i])}</div>
+    </div>`
+  ).join('');
+  document.getElementById('qFeedback').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+}
+
+function answer(letter){
+  const q=session.questions[session.index];
+  if(q._answered)return;
+  q._answered=true;
+  const correct=letter===q.answer;
+  if(correct)session.correct++;
+  document.querySelectorAll('#qOptions .opt').forEach(el=>{
+    el.classList.add('disabled');
+    el.onclick=null;
+    if(el.dataset.letter===q.answer)el.classList.add('correct');
+    else if(el.dataset.letter===letter)el.classList.add('wrong');
+  });
+  const fb=document.getElementById('qFeedback');
+  fb.style.display='block';
+  fb.className='feedback '+(correct?'ok':'bad');
+  fb.textContent=correct?'✓ 答對了！正確答案：'+q.answer:'✗ 答錯了，正確答案：'+q.answer+'（你選了 '+letter+'）';
+  document.getElementById('nextBtn').style.display='inline-flex';
+  document.getElementById('nextBtn').textContent=(session.index+1<session.questions.length)?'下一題 →':'查看結果 →';
+  session.answers.push({id:q.id,subject:q.subject,year:q.year,stem:q.stem,options:q.options,answer:q.answer,chosen:letter,correct});
+  document.getElementById('qScoreLive').textContent=session.correct+' 對';
+
+  // update wrong-question notebook
+  let wrong=loadWrong();
+  if(correct){wrong=wrong.filter(id=>id!==q.id);}
+  else{if(!wrong.includes(q.id))wrong.push(q.id);}
+  saveWrong(wrong);
+}
+
+function nextQuestion(){
+  session.index++;
+  if(session.index>=session.questions.length){finishQuiz();return;}
+  renderQuestion();
+}
+
+function finishQuiz(){
+  // merge into cumulative stats
+  const stats=loadStats();
+  session.answers.forEach(a=>{
+    if(!stats[a.subject])stats[a.subject]={correct:0,total:0};
+    stats[a.subject].total++;
+    if(a.correct)stats[a.subject].correct++;
+  });
+  saveStats(stats);
+  updateWrongCount();
+  go('results');
+  renderResults();
+}
+
+function renderResults(){
+  const total=session.answers.length,correct=session.correct;
+  document.getElementById('resultScore').textContent=correct+' / '+total;
+  document.getElementById('resultPct').textContent='正確率 '+Math.round(correct/total*100)+'%';
+  const bySubj={};
+  session.answers.forEach(a=>{
+    if(!bySubj[a.subject])bySubj[a.subject]={correct:0,total:0};
+    bySubj[a.subject].total++;
+    if(a.correct)bySubj[a.subject].correct++;
+  });
+  document.getElementById('resultSubjectBars').innerHTML=Object.entries(bySubj).map(([s,v])=>subjectBarHTML(s,v)).join('');
+  document.getElementById('reviewList').innerHTML=session.answers.map((a,i)=>{
+    const letters=['A','B','C','D'];
+    return `<div class="review-item">
+      <div class="review-q">${i+1}. [${esc(a.subject)} · ${a.year}年] ${esc(a.stem)}</div>
+      ${letters.map((l,idx)=>{
+        let cls='review-opt';
+        if(l===a.answer)cls+=' correct-ans';
+        else if(l===a.chosen)cls+=' chosen-wrong';
+        return `<div class="${cls}">${l}. ${esc(a.options[idx])}</div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function subjectBarHTML(s,v){
+  const pct=Math.round(v.correct/v.total*100);
+  const c=SUBJECT_COLORS[s]||'#5A7A9A';
+  return `<div class="subject-bar-row">
+    <div class="subject-bar-name">${esc(s)}</div>
+    <div class="subject-bar-track"><div class="subject-bar-fill" style="width:${pct}%;background:${c}"></div></div>
+    <div class="subject-bar-pct">${pct}%</div>
+  </div>`;
+}
+
+function renderWeak(){
+  const stats=loadStats();
+  const entries=Object.entries(stats);
+  const box=document.getElementById('weakContent');
+  if(entries.length===0){
+    box.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><h3 style="color:var(--text);margin-bottom:6px">還沒有作答紀錄</h3><p>去刷題區練習幾輪，這裡就會出現你的科目弱點分析</p></div>`;
+    return;
+  }
+  entries.sort((a,b)=>(a[1].correct/a[1].total)-(b[1].correct/b[1].total));
+  box.innerHTML=entries.map(([s,v])=>{
+    const pct=Math.round(v.correct/v.total*100);
+    return `<div class="subject-bar-row" style="margin-bottom:18px">
+      <div class="subject-bar-name">${esc(s)}</div>
+      <div class="subject-bar-track"><div class="subject-bar-fill" style="width:${pct}%;background:${pct<60?'var(--red)':pct<80?'var(--amber)':'var(--green)'}"></div></div>
+      <div class="subject-bar-pct">${pct}%</div>
+    </div><div style="margin:-12px 0 6px 162px;font-size:11px;color:var(--muted);font-family:var(--mono)">${v.correct} / ${v.total} 題</div>`;
+  }).join('');
+}
+
+function resetStats(){
+  if(!confirm('確定要清除所有刷題統計與錯題本紀錄嗎？此動作無法復原。'))return;
+  localStorage.removeItem(STATS_KEY);
+  localStorage.removeItem(WRONG_KEY);
+  updateWrongCount();
+  renderWeak();
+}
+
+function go(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('visible'));
+  document.getElementById('page-'+page).classList.add('visible');
+  if(page==='weak')renderWeak();
+  if(page==='setup')updateCountHint();
+  window.scrollTo(0,0);
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+init();
+</script>
+</body>
+</html>
