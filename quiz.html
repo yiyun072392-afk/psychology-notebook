@@ -166,6 +166,7 @@
     <div class="card">
       <div class="q-meta">
         <span class="q-tag" id="qSubjectTag"></span>
+        <span class="q-tag" id="qDomainTag" style="border-color:rgba(255,180,84,.2);background:rgba(255,180,84,.08);color:var(--amber)"></span>
         <span class="q-tag" id="qYearTag"></span>
       </div>
       <div class="q-stem" id="qStem"></div>
@@ -344,6 +345,9 @@ function renderQuestion(){
   document.getElementById('qProgressFill').style.width=(session.index/session.questions.length*100)+'%';
   document.getElementById('qScoreLive').textContent=session.correct+' 對';
   document.getElementById('qSubjectTag').textContent=q.subject;
+  const dTag=document.getElementById('qDomainTag');
+  dTag.textContent=q.domain||'未分類';
+  dTag.style.display=(q.domain&&q.domain!=='未分類')?'inline':'none';
   document.getElementById('qYearTag').textContent=q.year+'年'+(q.session||'');
   document.getElementById('qStem').textContent=q.stem;
   const letters=['A','B','C','D'];
@@ -380,14 +384,14 @@ function answer(letter){
   document.getElementById('nextBtn').style.display='inline-flex';
   document.getElementById('nextBtn').textContent=(session.index+1<session.questions.length)?'下一題 →':'查看結果 →';
   document.getElementById('uncertainBtn').style.display='inline-flex';
-  session.answers.push({id:q.id,subject:q.subject,year:q.year,qsession:q.session,stem:q.stem,options:q.options,answer:q.answer,chosen:letter,correct});
+  session.answers.push({id:q.id,subject:q.subject,domain:q.domain,year:q.year,qsession:q.session,stem:q.stem,options:q.options,answer:q.answer,chosen:letter,correct});
   document.getElementById('qScoreLive').textContent=session.correct+' 對';
 
   // update review notebook: auto add/clear the "wrong" flag based on this attempt
   const rv=loadReview();
   const existing=rv[q.id]||{};
   if(!correct||existing.uncertain){
-    rv[q.id]={id:q.id,subject:q.subject,year:q.year,session:q.session,stem:q.stem,options:q.options,answer:q.answer,
+    rv[q.id]={id:q.id,subject:q.subject,domain:q.domain,year:q.year,session:q.session,stem:q.stem,options:q.options,answer:q.answer,
       wrong:!correct,uncertain:!!existing.uncertain};
   }else if(existing.id){
     rv[q.id]={...existing,wrong:false};
@@ -401,7 +405,7 @@ function markUncertain(){
   if(!q._answered)return;
   const rv=loadReview();
   const existing=rv[q.id]||{wrong:false};
-  rv[q.id]={id:q.id,subject:q.subject,year:q.year,session:q.session,stem:q.stem,options:q.options,answer:q.answer,
+  rv[q.id]={id:q.id,subject:q.subject,domain:q.domain,year:q.year,session:q.session,stem:q.stem,options:q.options,answer:q.answer,
     wrong:existing.wrong,uncertain:true};
   saveReview(rv);
   updateReviewCount();
@@ -419,9 +423,14 @@ function nextQuestion(){
 function finishQuiz(){
   const stats=loadStats();
   session.answers.forEach(a=>{
-    if(!stats[a.subject])stats[a.subject]={correct:0,total:0};
+    if(!stats[a.subject])stats[a.subject]={correct:0,total:0,domains:{}};
+    if(!stats[a.subject].domains)stats[a.subject].domains={};
     stats[a.subject].total++;
     if(a.correct)stats[a.subject].correct++;
+    const dom=a.domain||'未分類';
+    if(!stats[a.subject].domains[dom])stats[a.subject].domains[dom]={correct:0,total:0};
+    stats[a.subject].domains[dom].total++;
+    if(a.correct)stats[a.subject].domains[dom].correct++;
   });
   saveStats(stats);
   updateReviewCount();
@@ -447,8 +456,9 @@ function renderResults(){
     let badges='';
     if(!a.correct)badges+='<span class="flag-badge wrong">✗ 答錯</span>';
     if(flags.uncertain)badges+='<span class="flag-badge uncertain">🤔 不確定</span>';
+    const domLabel=(a.domain&&a.domain!=='未分類')?(' · '+a.domain):'';
     return `<div class="review-item">
-      <div class="review-q">${badges}${i+1}. [${esc(a.subject)} · ${a.year}年] ${esc(a.stem)}</div>
+      <div class="review-q">${badges}${i+1}. [${esc(a.subject)}${esc(domLabel)} · ${a.year}年] ${esc(a.stem)}</div>
       ${letters.map((l,idx)=>{
         let cls='review-opt';
         if(l===a.answer)cls+=' correct-ans';
@@ -469,6 +479,17 @@ function subjectBarHTML(s,v){
   </div>`;
 }
 
+function weakBarRow(name,v,indent){
+  const pct=Math.round(v.correct/v.total*100);
+  const color=pct<60?'var(--red)':pct<80?'var(--amber)':'var(--green)';
+  const nameStyle=indent?'font-size:12px;color:var(--muted)':'';
+  return `<div class="subject-bar-row" style="margin-bottom:18px${indent?';padding-left:20px':''}">
+    <div class="subject-bar-name" style="${nameStyle}">${esc(name)}</div>
+    <div class="subject-bar-track"><div class="subject-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <div class="subject-bar-pct">${pct}%</div>
+  </div><div style="margin:-12px 0 6px ${indent?182:162}px;font-size:11px;color:var(--muted);font-family:var(--mono)">${v.correct} / ${v.total} 題</div>`;
+}
+
 function renderWeak(){
   const stats=loadStats();
   const entries=Object.entries(stats);
@@ -478,14 +499,23 @@ function renderWeak(){
     return;
   }
   entries.sort((a,b)=>(a[1].correct/a[1].total)-(b[1].correct/b[1].total));
-  box.innerHTML=entries.map(([s,v])=>{
-    const pct=Math.round(v.correct/v.total*100);
-    return `<div class="subject-bar-row" style="margin-bottom:18px">
-      <div class="subject-bar-name">${esc(s)}</div>
-      <div class="subject-bar-track"><div class="subject-bar-fill" style="width:${pct}%;background:${pct<60?'var(--red)':pct<80?'var(--amber)':'var(--green)'}"></div></div>
-      <div class="subject-bar-pct">${pct}%</div>
-    </div><div style="margin:-12px 0 6px 162px;font-size:11px;color:var(--muted);font-family:var(--mono)">${v.correct} / ${v.total} 題</div>`;
-  }).join('');
+  let html=entries.map(([s,v])=>weakBarRow(s,v,false)).join('');
+
+  // domain-level breakdown across all subjects, weakest first
+  const domainRows=[];
+  entries.forEach(([s,v])=>{
+    if(!v.domains)return;
+    Object.entries(v.domains).forEach(([d,dv])=>{
+      if(d==='未分類')return;
+      domainRows.push({label:s+' ・ '+d, v:dv});
+    });
+  });
+  if(domainRows.length){
+    domainRows.sort((a,b)=>(a.v.correct/a.v.total)-(b.v.correct/b.v.total));
+    html+=`<div class="block-label" style="margin-top:30px;padding-top:20px;border-top:1px solid var(--border)">依領域細分（最弱排前面）</div>`;
+    html+=domainRows.map(r=>weakBarRow(r.label,r.v,true)).join('');
+  }
+  box.innerHTML=html;
 }
 
 function renderNotebook(){
@@ -504,6 +534,7 @@ function renderNotebook(){
     return `<div class="notebook-item">
       <div class="notebook-item-head">
         <span class="q-tag">${esc(e.subject)}</span>
+        ${(e.domain&&e.domain!=='未分類')?`<span class="q-tag" style="border-color:rgba(255,180,84,.2);background:rgba(255,180,84,.08);color:var(--amber)">${esc(e.domain)}</span>`:''}
         <span class="q-tag">${e.year}年${esc(e.session||'')}</span>
         ${badges}
       </div>
